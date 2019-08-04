@@ -12,7 +12,7 @@ public class Config implements Cloneable {
 
     private static final Logger logger =
         LogManager.getFormatterLogger(Config.class.getName());
-    private static PropertiesConfiguration config = null;
+    private static volatile PropertiesConfiguration config;
 
     public Config clone() throws CloneNotSupportedException {
         throw new CloneNotSupportedException();
@@ -20,17 +20,21 @@ public class Config implements Cloneable {
 
     public static PropertiesConfiguration getConfig() {
         if (config == null) {
-            try{
-                config = new PropertiesConfiguration(
-                    Settings.CONF_FILE);
-            } catch (ConfigurationException e) {
-                logger.fatal("Configuration failed to intialize", e);
-            }
+            synchronized (Config.class) {
+                try{
+                    if (config == null) {
+                        config = new PropertiesConfiguration(
+                            Settings.CONF_FILE);
+                    }
+                } catch (ConfigurationException e) {
+                    logger.fatal("Configuration failed to intialize", e);
+                }
 
-            config.setReloadingStrategy(new FileChangedReloadingStrategy());
-            config.setAutoSave(true);
-            config.setProperty("app.name", "Face Identification Application");
-            //config.save();
+                config.setReloadingStrategy(new FileChangedReloadingStrategy());
+                config.setAutoSave(true);
+                config.setProperty("app.name", "Google Cloud Playground");
+                //config.save();
+            }
         }
 
         return config;
