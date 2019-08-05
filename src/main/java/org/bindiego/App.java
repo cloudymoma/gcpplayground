@@ -9,6 +9,8 @@ import org.apache.commons.configuration.ConfigurationException;
 //import org.bindiego.servicepal.FaceRecognition;
 import org.bindiego.util.Config;
 
+import org.bindiego.google.translate.CloudTranslate;
+
 /**
  * ServicePal image identification application
  * http://www.faceplusplus.com/
@@ -27,6 +29,7 @@ public class App
         logger.info(config.getProperty("app.name").toString() + " started");
 
         // new FaceRecognition();
+        new CloudTranslate();
 
         logger.info(config.getProperty("app.name").toString() + " Stopped");
     }

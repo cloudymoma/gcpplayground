@@ -21,6 +21,7 @@
         <cmn.fileup>1.4</cmn.fileup>
         <cmn.beanutils>1.9.3</cmn.beanutils>
         <jasypt.version>1.9.3</jasypt.version>
+        <gcp.ver>1.85.0</gcp.ver>
     </properties>
 
     <repositories>
@@ -259,6 +260,19 @@
             <groupId>facepp</groupId>
             <artifactId>facepp-sdk</artifactId>
             <version>v3</version>
+        </dependency>
+
+        <!-- google cloud java client core -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-core</artifactId>
+            <version>${gcp.ver}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-translate</artifactId>
+            <version>${gcp.ver}</version>
         </dependency>
     </dependencies>
 </project>
