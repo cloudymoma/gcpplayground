@@ -269,9 +269,17 @@
             <version>${gcp.ver}</version>
         </dependency>
 
+        <!-- google cloud translate client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-translate</artifactId>
+            <version>${gcp.ver}</version>
+        </dependency>
+
+        <!-- google cloud bigquery client -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-bigquery</artifactId>
             <version>${gcp.ver}</version>
         </dependency>
     </dependencies>
