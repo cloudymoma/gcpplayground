@@ -10,6 +10,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.bindiego.util.Config;
 
 import org.bindiego.google.translate.CloudTranslate;
+import org.bindiego.google.bq.CloudBigQuery;
 
 /**
  * ServicePal image identification application
@@ -32,6 +33,9 @@ public class App
 
         if (config.getProperty("google.translate").toString().equalsIgnoreCase("on"))
             new CloudTranslate().start();
+
+        if (config.getProperty("google.bigquery").toString().equalsIgnoreCase("on"))
+            new CloudBigQuery().start();
 
         logger.info(config.getProperty("app.name").toString() + " Stopped");
     }
