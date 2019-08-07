@@ -29,7 +29,9 @@ public class App
         logger.info(config.getProperty("app.name").toString() + " started");
 
         // new FaceRecognition();
-        new CloudTranslate();
+
+        if (config.getProperty("google.translate").toString().equalsIgnoreCase("on"))
+            new CloudTranslate().start();
 
         logger.info(config.getProperty("app.name").toString() + " Stopped");
     }

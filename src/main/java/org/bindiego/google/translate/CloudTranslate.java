@@ -27,11 +27,14 @@ import com.google.cloud.translate.Translate;
 import com.google.cloud.translate.TranslateOptions;
 // import com.google.cloud.translate.Translation;
 
-public class CloudTranslate {
+public class CloudTranslate extends Thread {
     public CloudTranslate() {
         // Instantiate or get the current Global config
         config = Config.getConfig();
+    }
 
+    @Override
+    public void run() {
         // Explicitly load google service account credentials
         String gCredentials = config.getProperty("google.credentials").toString();
         GoogleCredentials credentials = null;
