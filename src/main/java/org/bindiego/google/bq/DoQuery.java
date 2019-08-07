@@ -35,8 +35,8 @@ class DoQuery implements Runnable {
 
         for (int i = 0; i < numLoops; ++i) {
             try {
-                // final String qStr = "select * from click_stream.event";
-                final String qStr = "insert into click_stream.event"
+                // final String qStr = "select * from click_stream.events";
+                final String qStr = "insert into click_stream.events"
                     + " (uid, event) "
                     + " values "
                     + " ('002', [STRUCT('k1', STRUCT('v1', 1, 1.2)),STRUCT('k2', STRUCT('v2', 12, 1.23)),STRUCT('k3', STRUCT('v3', 123, 1.234))])";
