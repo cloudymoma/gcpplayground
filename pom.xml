@@ -21,7 +21,8 @@
         <cmn.fileup>1.4</cmn.fileup>
         <cmn.beanutils>1.9.3</cmn.beanutils>
         <jasypt.version>1.9.3</jasypt.version>
-        <gcp.ver>1.85.0</gcp.ver>
+        <gcp.ver>1.86.0</gcp.ver>
+        <gcp.ver-alpha>0.104.0-alpha</gcp.ver-alpha>
     </properties>
 
     <repositories>
@@ -287,7 +288,7 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-redis</artifactId>
-            <version>${gcp.ver}</version>
+            <version>${gcp.ver-alpha}</version>
         </dependency>
     </dependencies>
 </project>
