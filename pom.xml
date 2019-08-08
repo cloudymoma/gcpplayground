@@ -282,5 +282,12 @@
             <artifactId>google-cloud-bigquery</artifactId>
             <version>${gcp.ver}</version>
         </dependency>
+
+        <!-- google cloud memorystore client -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-redis</artifactId>
+            <version>${gcp.ver}</version>
+        </dependency>
     </dependencies>
 </project>
