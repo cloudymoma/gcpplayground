@@ -51,7 +51,7 @@ public class CloudBigQuery extends Thread {
             logger.fatal("Credential loading failed", ex);
         }
 
-        // Instantiate the Translation class
+        // Instantiate the BigQuery class
         BigQuery bigquery = BigQueryOptions.newBuilder()
             .setCredentials(credentials)
             .build()
