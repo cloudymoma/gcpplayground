@@ -60,12 +60,12 @@ public class CloudTranslate extends Thread {
         String detectedLanguage = detection.getLanguage();
 
         // Setup the threading pool
-        int numThreads = Integer.parseInt(
-            config.getProperty("google.translate.threads").toString());
         bq = new ArrayBlockingQueue<Runnable>(512);
         exec = new ThreadPoolExecutor(16, 512, 60, TimeUnit.SECONDS, bq);
 
         // Run threads
+        int numThreads = Integer.parseInt(
+            config.getProperty("google.translate.threads").toString());
         for (int i = 0; i < numThreads; ++i) {
             exec.execute(new DoTranslate(trans, detectedLanguage, txt));
         }
