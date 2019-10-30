@@ -60,7 +60,7 @@ public class CloudBigQuery extends Thread {
         // Setup the threading pool
         int numThreads = Integer.parseInt(
             config.getProperty("google.bigquery.threads").toString());
-        bq = new ArrayBlockingQueue<Runnable>(numThreads);
+        bq = new ArrayBlockingQueue<Runnable>(10);
         exec = new ThreadPoolExecutor(numThreads, numThreads, 60, TimeUnit.SECONDS, bq);
 
         // Run threads

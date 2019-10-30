@@ -62,8 +62,9 @@ public class CloudTranslate extends Thread {
         // Setup the threading pool
         int numThreads = Integer.parseInt(
             config.getProperty("google.translate.threads").toString());
-        bq = new ArrayBlockingQueue<Runnable>(numThreads);
+        bq = new ArrayBlockingQueue<Runnable>(512);
         exec = new ThreadPoolExecutor(numThreads, numThreads, 60, TimeUnit.SECONDS, bq);
+        // exec = new ThreadPoolExecutor(16, 512, 60, TimeUnit.SECONDS, bq);
 
         // Run threads
         for (int i = 0; i < numThreads; ++i) {
