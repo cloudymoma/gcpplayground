@@ -12,7 +12,15 @@
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <log4j.version>2.1</log4j.version>
-        <guava.version>28.0-jre</guava.version>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.javadoc.protobufBaseURL>https://googleapis.dev/java/google-api-grpc/latest</project.javadoc.protobufBaseURL>
+        <github.global.server>github</github.global.server>
+        <site.installationModule>google-cloud-clients</site.installationModule>
+        <guava.version>28.1-jre</guava.version>
+        <grpc.version>1.24.1</grpc.version>
+        <google.auth.version>0.18.0</google.auth.version>
+        <oauth-client.version>1.30.4</oauth-client.version>
+        <protobuf.version>3.10.0</protobuf.version>
         <cmn.config>1.10</cmn.config>
         <cmn.io>2.6</cmn.io>
         <cmn.cli>1.4</cmn.cli>
@@ -22,9 +30,26 @@
         <cmn.beanutils>1.9.3</cmn.beanutils>
         <jasypt.version>1.9.3</jasypt.version>
         <gcp.ver>1.86.0</gcp.ver>
-        <gcp.ver-alpha>0.104.0-alpha</gcp.ver-alpha>
+        <gcp.ver-alpha>0.116.0-alpha</gcp.ver-alpha>
         <gcp.firestore.ver>1.16.0</gcp.firestore.ver>
+        <threeten.ver>1.4.0</threeten.ver>
     </properties>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <site>
+            <id>github-pages-site</id>
+            <name>Deployment through GitHub's site deployment plugin</name>
+            <url>site/google-cloud-clients</url>
+        </site>
+    </distributionManagement>
 
     <repositories>
         <repository>
@@ -285,6 +310,12 @@
             <version>${gcp.ver}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-pubsub</artifactId>
+            <version>${gcp.ver}</version>
+        </dependency>
+
         <!-- google cloud memorystore client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
@@ -297,6 +328,36 @@
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-firestore</artifactId>
             <version>${gcp.firestore.ver}</version>
+        </dependency>
+
+        <!-- Google stuff -->
+        <dependency>
+            <groupId>com.google.auth</groupId>
+            <artifactId>google-auth-library-bom</artifactId>
+            <version>${google.auth.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-bom</artifactId>
+            <version>${grpc.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-bom</artifactId>
+            <version>${protobuf.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+
+        <!-- threeten.org -->
+        <dependency>
+            <groupId>org.threeten</groupId>
+            <artifactId>threetenbp</artifactId>
+            <version>${threeten.ver}</version>
         </dependency>
     </dependencies>
 </project>
