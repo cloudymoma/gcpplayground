@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.threeten.bp.Duration;
 
 class DoSub implements Runnable {
     private DoSub() {}
@@ -63,6 +64,7 @@ class DoSub implements Runnable {
             subscriber = Subscriber.newBuilder(subscriptionName, receiver)
                 .setFlowControlSettings(flowControlSettings)
                 .setCredentialsProvider(this.credentialsProvider)
+                .setMaxAckExtensionPeriod(Duration.ofSeconds(120))
                 .build();
 
             subscriber.startAsync().awaitRunning();
