@@ -12,6 +12,7 @@ import com.google.api.gax.rpc.ApiException;
 import com.google.api.gax.batching.BatchingSettings;
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.ExecutorProvider;
+import com.google.api.gax.core.FixedExecutorProvider;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.core.InstantiatingExecutorProvider;
 import com.google.api.gax.retrying.RetrySettings;
@@ -22,7 +23,9 @@ import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
 import java.io.FileInputStream;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import org.threeten.bp.Duration;
 
 class DoPub implements Runnable {
@@ -72,6 +75,8 @@ class DoPub implements Runnable {
                 .setBatchingSettings(batchingSettings)
                 .setRetrySettings(retrySettings)
                 .build();
+
+            this.awaitedFutures = new AtomicLong();
         } catch (Exception ex) {
             logger.error("Failed to init publisher", ex);
         }
@@ -80,6 +85,8 @@ class DoPub implements Runnable {
     @Override
     public void run() {
         try {
+            awaitedFutures.incrementAndGet();
+
             // compile a message delimited by comma
             // timestamp,thread_id,thread_name,order_num
             final String deli = ",";
@@ -92,6 +99,7 @@ class DoPub implements Runnable {
                 config.getProperty("google.pubsub.pub.threads.msgnum").toString());
 
             for (int i = 0; i < numLoops; ++i) {
+                awaitedFutures.incrementAndGet();
                 final long millis = System.currentTimeMillis();
                 final String message = 
                     new StringBuilder().append(millis).append(deli)
@@ -101,29 +109,43 @@ class DoPub implements Runnable {
                         .toString();
 
                 ByteString data = ByteString.copyFromUtf8(message);
-                PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
-                ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
-                ApiFutures.addCallback(
-                    messageIdFuture,
-                    new ApiFutureCallback<String>() {
-                        public void onFailure(Throwable throwable) {
-                            logger.warn("failed to publish message: " + message);
+                PubsubMessage pubsubMessage = 
+                    PubsubMessage.newBuilder()
+                        .setData(data)
+                        .putAttributes("publish_time", Long.toString(millis))
+                        .build();
 
-                            if (throwable instanceof ApiException) {
-                                ApiException apiException = ((ApiException) throwable);
-                                logger.debug("Error code: " + apiException.getStatusCode().getCode());
-                                logger.debug("Is retryable? " + apiException.isRetryable());
-                            }
-                        }
-                        public void onSuccess(String messageId) {
-                            logger.info("published with message id: " + messageId);
+                ApiFuture<String> response = publisher.publish(pubsubMessage);
+                response.addListener(
+                    () -> {
+                        try {
+                            response.get();
+                        } catch (Exception ex) {
+                            logger.warn("Could not publish a message: " + ex);
+                        } finally {
+                            awaitedFutures.decrementAndGet();
                         }
                     },
-                    Executors.newSingleThreadExecutor());
+                    executor
+                );
             }
+
+            awaitedFutures.decrementAndGet();
         } catch (Exception ex) {
             logger.error("Error", ex);
         } finally {
+            // wait for publishes
+            try {
+                while(awaitedFutures.longValue() > 0) {
+                    Thread.sleep(2000);
+                }
+            } catch (InterruptedException ex) {
+                logger.error("Error while waiting for completion: " + ex);
+            }
+
+            executor.shutdown();
+
+            // showdown
             if (null != publisher) {
                 try {
                     // When finished with the publisher, make sure to shutdown to free up resources.
@@ -143,4 +165,7 @@ class DoPub implements Runnable {
     private PropertiesConfiguration config;
     
     private Publisher publisher;
+
+    private AtomicLong awaitedFutures;
+    private ExecutorService executor = Executors.newCachedThreadPool();
 }
