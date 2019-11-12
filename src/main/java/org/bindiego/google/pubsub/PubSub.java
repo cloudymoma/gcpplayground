@@ -116,7 +116,11 @@ public class PubSub extends Thread {
             logger.fatal("Credential loading failed", ex);
         }
 
-        init();
+        if (!Boolean.valueOf(config.getProperty("google.pubsub.skip.init").toString())) {
+            init();
+        } else {
+            logger.info("Skip creation of publication and subscriptions");
+        }
 
         // Setup the pub threading pool
         pubbq = new ArrayBlockingQueue<Runnable>(128);
