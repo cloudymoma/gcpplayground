@@ -18,7 +18,7 @@
         <cmn.cli>1.2</cmn.cli>
         <cmn.math>3.4.1</cmn.math>
         <cmn.compress>1.9</cmn.compress>
-        <cmn.fileup>1.3.1</cmn.fileup>
+        <cmn.fileup>1.3.3</cmn.fileup>
         <cmn.beanutils>1.9.2</cmn.beanutils>
         <jasypt.version>1.9.2</jasypt.version>
     </properties>
