@@ -116,8 +116,7 @@ class DoPub implements Runnable {
                     PubsubMessage.newBuilder()
                         .setData(data)
                         .setPublishTime(
-                            // Timestamp.newBuilder().setSeconds(millis / 1000) 
-                            Timestamp.newBuilder().setSeconds(millis / 1000 + 4) // TODO: fix this shit
+                            Timestamp.newBuilder().setSeconds(millis / 1000) 
                                  .setNanos((int) ((millis % 1000) * 1000000)).build()
                         )
                         .setMessageId(UUID.randomUUID().toString())
