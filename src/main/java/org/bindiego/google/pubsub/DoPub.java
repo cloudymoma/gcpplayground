@@ -19,9 +19,12 @@ import com.google.api.gax.retrying.RetrySettings;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.Timestamp;
+import com.google.protobuf.Timestamp.Builder;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
 import java.io.FileInputStream;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -112,7 +115,13 @@ class DoPub implements Runnable {
                 PubsubMessage pubsubMessage = 
                     PubsubMessage.newBuilder()
                         .setData(data)
-                        .putAttributes("publish_time", Long.toString(millis))
+                        .setPublishTime(
+                            // Timestamp.newBuilder().setSeconds(millis / 1000) 
+                            Timestamp.newBuilder().setSeconds(millis / 1000 + 4) // TODO: fix this shit
+                                 .setNanos((int) ((millis % 1000) * 1000000)).build()
+                        )
+                        .setMessageId(UUID.randomUUID().toString())
+                        .putAttributes("timestamp", Long.toString(millis)) // Exact Java Milli ¯\_(ツ)_/¯
                         .build();
 
                 ApiFuture<String> response = publisher.publish(pubsubMessage);

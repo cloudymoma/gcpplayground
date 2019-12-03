@@ -56,8 +56,14 @@ class DoSub implements Runnable {
                     @Override
                     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
                         // handle incoming message, then ack/nack the received message
-                        logger.debug("Id : " + message.getMessageId());
-                        logger.debug("Data : " + message.getData().toStringUtf8());
+                        logger.debug("Message Id : " + message.getMessageId());
+                        logger.debug("Message payload: " + message.getData().toStringUtf8());
+                        logger.debug("Attribute timestamp: " 
+                            + message.getAttributesOrDefault("timestamp", "CANNOT get timestamp"));
+                        logger.debug("Publish time seconds: " + message.getPublishTime()
+                            .getSeconds());
+                        logger.debug("Publish time nanosecond: " + message.getPublishTime()
+                            .getNanos());
                         consumer.ack();
                     }};
                                                    
