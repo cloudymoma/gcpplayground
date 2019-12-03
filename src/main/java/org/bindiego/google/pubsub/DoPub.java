@@ -103,7 +103,9 @@ class DoPub implements Runnable {
 
             for (int i = 0; i < numLoops; ++i) {
                 awaitedFutures.incrementAndGet();
+                
                 final long millis = System.currentTimeMillis();
+
                 final String message = 
                     new StringBuilder().append(millis).append(deli)
                         .append(threadId).append(deli)
@@ -111,7 +113,10 @@ class DoPub implements Runnable {
                         .append(i)
                         .toString();
 
+                final String msgId = UUID.randomUUID().toString();
+
                 ByteString data = ByteString.copyFromUtf8(message);
+
                 PubsubMessage pubsubMessage = 
                     PubsubMessage.newBuilder()
                         .setData(data)
@@ -119,7 +124,8 @@ class DoPub implements Runnable {
                             Timestamp.newBuilder().setSeconds(millis / 1000) 
                                  .setNanos((int) ((millis % 1000) * 1000000)).build()
                         )
-                        .setMessageId(UUID.randomUUID().toString())
+                        .setMessageId(msgId)
+                        .putAttributes("id", msgId) 
                         .putAttributes("timestamp", Long.toString(millis)) // Exact Java Milli ¯\_(ツ)_/¯
                         .build();
 
