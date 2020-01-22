@@ -112,7 +112,7 @@ class DoPub implements Runnable {
 
             /**
              * CSV payload contents
-             * - timestamp (milliseconds)
+             * - event timestamp (milliseconds)
              * - thread_id
              * - thread_name
              * - sequence_num (how many messages posted by this thread, monotonic increasing
