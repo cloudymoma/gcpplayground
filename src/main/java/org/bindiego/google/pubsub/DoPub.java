@@ -29,6 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.Random; 
 import org.threeten.bp.Duration;
 
 class DoPub implements Runnable {
@@ -101,6 +102,23 @@ class DoPub implements Runnable {
             int numLoops = Integer.parseInt(
                 config.getProperty("google.pubsub.pub.threads.msgnum").toString());
 
+            Random rand = new Random();
+
+            // a random dimension array
+            String[] dims = {"bindigo", 
+                "bindiego",
+                "ivy",
+                "duelaylowmow"};
+
+            /**
+             * CSV payload contents
+             * - timestamp (milliseconds)
+             * - thread_id
+             * - thread_name
+             * - sequence_num (how many messages posted by this thread, monotonic increasing
+             * - dim1
+             * - metrics1
+             */
             for (int i = 0; i < numLoops; ++i) {
                 awaitedFutures.incrementAndGet();
                 
@@ -110,7 +128,9 @@ class DoPub implements Runnable {
                     new StringBuilder().append(millis).append(deli)
                         .append(threadId).append(deli)
                         .append(threadName).append(deli)
-                        .append(i)
+                        .append(i).append(deli)
+                        .append(dims[rand.nextInt(4)]).append(deli)
+                        .append(rand.nextInt(1000))
                         .toString();
 
                 final String msgId = UUID.randomUUID().toString();

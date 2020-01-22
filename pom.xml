@@ -52,6 +52,7 @@
     </distributionManagement>
 
     <repositories>
+        <!--
         <repository>
             <id>spring-maven-release</id>
             <name>Spring Maven Release Repository</name>
@@ -67,10 +68,12 @@
             <name>Spring Roo Repository</name>
             <url>http://spring-roo-repository.springsource.org/release</url>
         </repository>
+        -->
         <!-- Maven central -->
         <repository>
             <id>central</id>
-            <url>http://repo1.maven.org/maven2</url>
+            <url>https://repo1.maven.org/maven2</url>
+            <layout>default</layout>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -199,11 +202,15 @@
         </plugins>
     </build>
 
+    <reporting>
+        <outputDirectory>${project.build.directory}/site</outputDirectory>
+    </reporting>
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>4.13</version>
             <scope>test</scope>
         </dependency>
 
