@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 
 import io.grpc.Status.Code;
 
@@ -123,12 +124,14 @@ public class PubSub extends Thread {
         }
 
         // Setup the pub threading pool
-        pubbq = new ArrayBlockingQueue<Runnable>(128);
-        execPub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, pubbq);
+        // pubbq = new ArrayBlockingQueue<Runnable>(128);
+        // execPub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, pubbq);
 
         // Run threads
         int numPubThreads = Integer.parseInt(
             config.getProperty("google.pubsub.pub.threads").toString());
+        execPub = Executors.newFixedThreadPool(numPubThreads);
+
         for (int i = 0; i < numPubThreads; ++i) {
             execPub.execute(
                 new DoPub(
@@ -137,12 +140,14 @@ public class PubSub extends Thread {
         }
 
         // Setup the sub threading pool
-        subbq = new ArrayBlockingQueue<Runnable>(128);
-        execSub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, subbq);
+        // subbq = new ArrayBlockingQueue<Runnable>(128);
+        // execSub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, subbq);
 
         // Run threads
         int numSubThreads = Integer.parseInt(
             config.getProperty("google.pubsub.sub.threads").toString());
+        execSub = Executors.newFixedThreadPool(numSubThreads);
+
         for (int i = 0; i < numSubThreads; ++i) {
             execSub.execute(
                 new DoSub(
