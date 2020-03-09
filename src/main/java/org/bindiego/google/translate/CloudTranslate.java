@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 
 import com.google.common.collect.Lists;
 
@@ -60,12 +61,14 @@ public class CloudTranslate extends Thread {
         String detectedLanguage = detection.getLanguage();
 
         // Setup the threading pool
-        bq = new ArrayBlockingQueue<Runnable>(512);
-        exec = new ThreadPoolExecutor(16, 512, 60, TimeUnit.SECONDS, bq);
+        //bq = new ArrayBlockingQueue<Runnable>(512);
+        //exec = new ThreadPoolExecutor(16, 512, 60, TimeUnit.SECONDS, bq);
 
         // Run threads
         int numThreads = Integer.parseInt(
             config.getProperty("google.translate.threads").toString());
+        exec = Executors.newFixedThreadPool(numThreads);
+
         for (int i = 0; i < numThreads; ++i) {
             exec.execute(new DoTranslate(trans, detectedLanguage, txt));
         }
