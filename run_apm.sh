@@ -24,7 +24,7 @@ ${mvn} clean package install assembly:single
 
 java -javaagent:$pwd/apm/elastic-apm-agent.jar \
     -Delastic.apm.service_name=gcpplayground \
-    -Delastic.apm.server_url=http://10.140.0.3:8200 \
+    -Delastic.apm.server_urls=http://10.140.0.3:8200 \
     -Delastic.apm.application_packages=com.bindiego \
     -Dlog4j.configurationFile=$pwd/conf/log4j2.xml \
     -jar target/gcp-1.0-SNAPSHOT-jar-with-dependencies.jar
