@@ -122,7 +122,11 @@ class DoPub implements Runnable {
             for (int i = 0; i < numLoops; ++i) {
                 awaitedFutures.incrementAndGet();
                 
-                final long millis = System.currentTimeMillis();
+                // introduce a random delay in 5s, 10s and 30s for event time
+                final long[] delay = {5000L, 10000L, 30000L};
+                final long millis = (0 == rand.nextInt(2)) ? 
+                    System.currentTimeMillis() :
+                    (System.currentTimeMillis() - delay[rand.nextInt(3)]);
 
                 final String message = 
                     new StringBuilder().append(millis).append(deli)
