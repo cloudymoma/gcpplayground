@@ -16,7 +16,7 @@
         <project.javadoc.protobufBaseURL>https://googleapis.dev/java/google-api-grpc/latest</project.javadoc.protobufBaseURL>
         <github.global.server>github</github.global.server>
         <site.installationModule>google-cloud-clients</site.installationModule>
-        <guava.version>28.1-jre</guava.version>
+        <guava.version>28.2-jre</guava.version>
         <grpc.version>1.24.1</grpc.version>
         <google.auth.version>0.18.0</google.auth.version>
         <oauth-client.version>1.30.4</oauth-client.version>
@@ -29,9 +29,12 @@
         <cmn.fileup>1.4</cmn.fileup>
         <cmn.beanutils>1.9.3</cmn.beanutils>
         <jasypt.version>1.9.3</jasypt.version>
-        <gcp.ver>1.86.0</gcp.ver>
-        <gcp.ver-alpha>0.116.0-alpha</gcp.ver-alpha>
-        <gcp.firestore.ver>1.16.0</gcp.firestore.ver>
+        <gcp.core.ver>1.93.3</gcp.core.ver>
+        <gcp.trans.ver>1.94.4</gcp.trans.ver>
+        <gcp.pubsub.ver>1.103.1</gcp.pubsub.ver>
+        <gcp.bq.ver>1.110.0</gcp.bq.ver>
+        <gcp.firestore.ver>1.32.5</gcp.firestore.ver>
+        <gcp.redis.ver>1.0.0</gcp.redis.ver>
         <threeten.ver>1.4.0</threeten.ver>
     </properties>
 
@@ -300,34 +303,34 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-core</artifactId>
-            <version>${gcp.ver}</version>
+            <version>${gcp.core.ver}</version>
         </dependency>
 
         <!-- google cloud translate client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-translate</artifactId>
-            <version>${gcp.ver}</version>
+            <version>${gcp.trans.ver}</version>
         </dependency>
 
         <!-- google cloud bigquery client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-bigquery</artifactId>
-            <version>${gcp.ver}</version>
+            <version>${gcp.bq.ver}</version>
         </dependency>
 
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-pubsub</artifactId>
-            <version>${gcp.ver}</version>
+            <version>${gcp.pubsub.ver}</version>
         </dependency>
 
         <!-- google cloud memorystore client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-redis</artifactId>
-            <version>${gcp.ver-alpha}</version>
+            <version>${gcp.redis.ver}</version>
         </dependency>
 
         <!-- google cloud firetore client -->
