@@ -15,7 +15,8 @@ apm_ver=1.13.0
 
 [ -d apm ] || mkdir -p apm
 
-${mvn} clean package install assembly:single
+# ${mvn} clean package install assembly:single
+${mvn} compile
 
 [ -f $pwd/apm/elastic-apm-agent.jar ] || \
     wget https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/$apm_ver/elastic-apm-agent-$apm_ver.jar
