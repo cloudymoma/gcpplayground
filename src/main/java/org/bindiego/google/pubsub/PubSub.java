@@ -154,6 +154,9 @@ public class PubSub extends Thread {
                     ProjectSubscriptionName.of(projectId, subscriptionId),
                     credentialsProvider));
         }
+
+        execPub.shutdown();
+        execSub.shutdown();
     }
 
     private static final Logger logger =

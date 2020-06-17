@@ -67,6 +67,8 @@ public class CloudBigQuery extends Thread {
         for (int i = 0; i < numThreads; ++i) {
             exec.execute(new DoQuery(bigquery));
         }
+
+        exec.shutdown();
     }
 
     private static final Logger logger =

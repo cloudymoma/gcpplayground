@@ -72,6 +72,8 @@ public class CloudTranslate extends Thread {
         for (int i = 0; i < numThreads; ++i) {
             exec.execute(new DoTranslate(trans, detectedLanguage, txt));
         }
+
+        exec.shutdown();
     }
 
     private static final Logger logger =
