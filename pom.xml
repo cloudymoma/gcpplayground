@@ -27,7 +27,7 @@
         <cmn.math>3.6.1</cmn.math>
         <cmn.compress>1.19</cmn.compress>
         <cmn.fileup>1.4</cmn.fileup>
-        <cmn.beanutils>1.9.3</cmn.beanutils>
+        <cmn.beanutils>1.9.4</cmn.beanutils>
         <jasypt.version>1.9.3</jasypt.version>
         <gcp.core.ver>1.93.3</gcp.core.ver>
         <gcp.trans.ver>1.94.4</gcp.trans.ver>
