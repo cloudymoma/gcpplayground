@@ -30,9 +30,9 @@
         <cmn.beanutils>1.9.4</cmn.beanutils>
         <jasypt.version>1.9.3</jasypt.version>
         <gcp.core.ver>1.93.3</gcp.core.ver>
-        <gcp.trans.ver>1.94.4</gcp.trans.ver>
-        <gcp.pubsub.ver>1.103.1</gcp.pubsub.ver>
-        <gcp.bq.ver>1.110.0</gcp.bq.ver>
+        <gcp.trans.ver>1.95.0</gcp.trans.ver>
+        <gcp.pubsub.ver>1.108.0</gcp.pubsub.ver>
+        <gcp.bq.ver>1.116.6</gcp.bq.ver>
         <gcp.firestore.ver>1.32.5</gcp.firestore.ver>
         <gcp.redis.ver>1.0.0</gcp.redis.ver>
         <threeten.ver>1.4.0</threeten.ver>
