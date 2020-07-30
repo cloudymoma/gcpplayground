@@ -40,6 +40,8 @@ import com.google.pubsub.v1.PubsubMessage;
 import com.google.cloud.ServiceOptions;
 import com.google.cloud.pubsub.v1.TopicAdminClient;
 import com.google.cloud.pubsub.v1.SubscriptionAdminClient;
+import com.google.cloud.pubsub.v1.TopicAdminSettings;
+import com.google.cloud.pubsub.v1.SubscriptionAdminSettings;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.cloud.pubsub.v1.AckReplyConsumer;
 import com.google.cloud.pubsub.v1.MessageReceiver;
@@ -66,12 +68,17 @@ public class PubSub extends Thread {
      * Create a subscription, for example:
      * gcloud pubsub subscriptions create --topic dingoactions dingoactions-sub
      */
-    private void init() {
+    private void init(CredentialsProvider credentialsProvider) {
         logger.info("Setup the pubsub topic and subscription");
 
         logger.info("creating topic");
         ProjectTopicName topicName = ProjectTopicName.of(projectId, topicId);
-        try (TopicAdminClient topicAdminClient = TopicAdminClient.create()) {
+        try {
+            TopicAdminSettings topicAdminSettings =
+                 TopicAdminSettings.newBuilder()
+                     .setCredentialsProvider(credentialsProvider)
+                     .build();
+            TopicAdminClient topicAdminClient = TopicAdminClient.create(topicAdminSettings);
             topicAdminClient.createTopic(topicName);
             logger.info("Topic %s:%s created.\n", topicName.getProject(), topicName.getTopic());
         } catch (java.io.IOException ex) {
@@ -86,7 +93,12 @@ public class PubSub extends Thread {
         logger.info("creating the subscription");
         ProjectSubscriptionName subscriptionName = ProjectSubscriptionName.of(
             projectId, subscriptionId);
-        try (SubscriptionAdminClient subscriptionAdminClient = SubscriptionAdminClient.create()) {
+        try {
+            SubscriptionAdminSettings subscriptionAdminSettings =
+                SubscriptionAdminSettings.newBuilder()
+                     .setCredentialsProvider(credentialsProvider)
+                    .build();
+            SubscriptionAdminClient subscriptionAdminClient = SubscriptionAdminClient.create(subscriptionAdminSettings);
             // create a pull subscription with default acknowledgement deadline (= 10 seconds)
             Subscription subscription =
                 subscriptionAdminClient.createSubscription(
@@ -118,7 +130,7 @@ public class PubSub extends Thread {
         }
 
         if (!Boolean.valueOf(config.getProperty("google.pubsub.skip.init").toString())) {
-            init();
+            init(credentialsProvider);
         } else {
             logger.info("Skip creation of publication and subscriptions");
         }
