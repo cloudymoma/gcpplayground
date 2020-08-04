@@ -38,7 +38,7 @@ class DoTranslate implements Runnable {
                     TranslateOption.targetLanguage(
                         config.getProperty("google.translate.target").toString()));
 
-                System.out.println(translation.getTranslatedText());
+                logger.info("Translated text: %s", translation.getTranslatedText());
             } catch (Exception ex) {
                 logger.error("BOOM!", ex);
                 System.exit(-2);
