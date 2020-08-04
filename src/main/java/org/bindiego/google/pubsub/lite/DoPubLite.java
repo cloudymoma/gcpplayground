@@ -125,7 +125,7 @@ class DoPubLite implements Runnable {
                     metadata.add(PublishMetadata.decode(id));
                 }
 
-                logger.debug("%s\nPublished %d messages", metadata, ackIds.size());
+                logger.info("%s\nPublished %d messages", metadata, ackIds.size());
 
                 if (publisher != null) {
                     // Shut down the publisher.
