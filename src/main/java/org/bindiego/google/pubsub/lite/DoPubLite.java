@@ -137,7 +137,7 @@ class DoPubLite implements Runnable {
             } catch (StatusException ex) {
                 logger.error("gRPC Error", ex);
             } catch (Exception ex) {
-                logger.error("Erro", ex);
+                logger.error("Error", ex);
             }
         }
     }
