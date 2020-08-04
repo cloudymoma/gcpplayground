@@ -36,6 +36,7 @@
         <gcp.bq.ver>1.116.6</gcp.bq.ver>
         <gcp.firestore.ver>1.32.5</gcp.firestore.ver>
         <gcp.redis.ver>1.0.0</gcp.redis.ver>
+        <gcp.gcs.ver>1.111.2</gcp.gcs.ver>
         <threeten.ver>1.4.0</threeten.ver>
         <google.flogger.ver>0.5.1</google.flogger.ver>
     </properties>
@@ -211,6 +212,18 @@
         <outputDirectory>${project.build.directory}/site</outputDirectory>
     </reporting>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>libraries-bom</artifactId>
+            <version>8.1.0</version>
+            <type>pom</type>
+            <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -348,6 +361,13 @@
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-firestore</artifactId>
             <version>${gcp.firestore.ver}</version>
+        </dependency>
+
+        <!-- google cloud storage client -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-storage</artifactId>
+            <version>${gcp.gcs.ver}</version>
         </dependency>
 
         <!-- Google stuff -->
