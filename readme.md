@@ -24,13 +24,25 @@ Once it has been configured. Run it :)
 ./run.sh
 ```
 
+### Use http proxy for GCP java client libs
+
+```
+http.proxy = on
+http.proxy.host = localhost
+http.proxy.port = 7443
+```
+
+set it [here](https://github.com/cloudymoma/gcpplayground/blob/gcp/conf/config.properties#L7-L9)
+
 ### BigQuery
 
 refer to [this Gist](https://gist.github.com/bindiego/17898d41e98fae201ce2c1d1da3ba9fc) for setting up the testing table.
 
+[sample code](https://github.com/cloudymoma/gcpplayground/tree/gcp/src/main/java/org/bindiego/google/bq)
+
 ### Translate API
 
-supported
+[sample code](https://github.com/cloudymoma/gcpplayground/tree/gcp/src/main/java/org/bindiego/google/translate)
 
 ### Pubsub
 
@@ -44,6 +56,12 @@ in the [config file](https://github.com/bindiego/gcpplayground/blob/gcp/conf/con
 
 You could also use the pubsub component as data generator for testing a [**streaming system** on Google Cloud](https://github.com/cloudymoma/raycom)
 
+[sample code](https://github.com/cloudymoma/gcpplayground/tree/gcp/src/main/java/org/bindiego/google/pubsub)
+
 ### Pubsublite
 
-supported. Similar to Pubsub with certain limits
+[sample code](https://github.com/cloudymoma/gcpplayground/tree/gcp/src/main/java/org/bindiego/google/pubsub/lite). Similar to Pubsub with certain limits
+
+## Cloud Storage, aka GCS
+
+[sample code](https://github.com/cloudymoma/gcpplayground/tree/gcp/src/main/java/org/bindiego/google/gcs)
