@@ -1,5 +1,7 @@
 ## Google Cloud Playground
 
+Quickly test Google Cloud services
+
 ### Prerequisites
 Java Dev Env
 - JDK8+
@@ -26,6 +28,10 @@ Once it has been configured. Run it :)
 
 refer to [this Gist](https://gist.github.com/bindiego/17898d41e98fae201ce2c1d1da3ba9fc) for setting up the testing table.
 
+### Translate API
+
+supported
+
 ### Pubsub
 
 This project will create the Topic and the Subscription for you, you can simply turn this off by set
@@ -35,3 +41,9 @@ google.pubsub.skip.init = true
 ```
 
 in the [config file](https://github.com/bindiego/gcpplayground/blob/gcp/conf/config.properties). If you don't do it while the topic and the subscription is there, it will show you a clear runtime exeception and keep running. 
+
+You could also use the pubsub component as data generator for testing a [**streaming system** on Google Cloud](https://github.com/cloudymoma/raycom)
+
+### Pubsublite
+
+supported. Similar to Pubsub with certain limits
