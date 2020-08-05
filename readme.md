@@ -62,6 +62,6 @@ You could also use the pubsub component as data generator for testing a [**strea
 
 [sample code](https://github.com/cloudymoma/gcpplayground/tree/gcp/src/main/java/org/bindiego/google/pubsub/lite). Similar to Pubsub with certain limits
 
-## Cloud Storage, aka GCS
+### Cloud Storage, aka GCS
 
 [sample code](https://github.com/cloudymoma/gcpplayground/tree/gcp/src/main/java/org/bindiego/google/gcs)
