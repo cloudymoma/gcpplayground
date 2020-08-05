@@ -27,8 +27,16 @@ import org.threeten.bp.Duration;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.cloud.pubsub.v1.AckReplyConsumer;
 import com.google.cloud.pubsub.v1.MessageReceiver;
-import com.google.cloud.pubsublite.*;
-import com.google.cloud.pubsublite.cloudpubsub.*;
+import com.google.cloud.pubsublite.CloudRegion;
+import com.google.cloud.pubsublite.CloudZone;
+import com.google.cloud.pubsublite.Partition;
+import com.google.cloud.pubsublite.ProjectNumber;
+import com.google.cloud.pubsublite.SubscriptionName;
+import com.google.cloud.pubsublite.SubscriptionPath;
+import com.google.cloud.pubsublite.SubscriptionPaths;
+import com.google.cloud.pubsublite.cloudpubsub.FlowControlSettings;
+import com.google.cloud.pubsublite.cloudpubsub.Subscriber;
+import com.google.cloud.pubsublite.cloudpubsub.SubscriberSettings;
 
 class DoSubLite implements Runnable {
     private DoSubLite() {}

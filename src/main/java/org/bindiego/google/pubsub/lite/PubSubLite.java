@@ -32,14 +32,25 @@ import com.google.api.gax.rpc.ApiException;
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutures;
 import com.google.protobuf.ByteString;
-
-import com.google.cloud.pubsublite.*;
-import com.google.cloud.pubsublite.proto.Topic;
-import com.google.cloud.pubsublite.proto.Topic.*;
-import com.google.cloud.pubsublite.proto.Subscription;
-import com.google.cloud.pubsublite.proto.Subscription.*;
-import com.google.cloud.pubsublite.proto.Subscription.DeliveryConfig.*;
 import com.google.protobuf.util.Durations;
+
+import com.google.cloud.pubsublite.AdminClient;
+import com.google.cloud.pubsublite.AdminClientSettings;
+import com.google.cloud.pubsublite.CloudRegion;
+import com.google.cloud.pubsublite.CloudZone;
+import com.google.cloud.pubsublite.ProjectNumber;
+import com.google.cloud.pubsublite.TopicName;
+import com.google.cloud.pubsublite.TopicPath;
+import com.google.cloud.pubsublite.TopicPaths;
+import com.google.cloud.pubsublite.proto.Topic;
+import com.google.cloud.pubsublite.proto.Topic.PartitionConfig;
+import com.google.cloud.pubsublite.proto.Topic.RetentionConfig;
+import com.google.cloud.pubsublite.SubscriptionName;
+import com.google.cloud.pubsublite.SubscriptionPath;
+import com.google.cloud.pubsublite.SubscriptionPaths;
+import com.google.cloud.pubsublite.proto.Subscription;
+import com.google.cloud.pubsublite.proto.Subscription.DeliveryConfig;
+import com.google.cloud.pubsublite.proto.Subscription.DeliveryConfig.DeliveryRequirement;
 
 public class PubSubLite extends Thread {
     public PubSubLite() {

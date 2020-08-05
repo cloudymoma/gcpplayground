@@ -34,8 +34,15 @@ import java.util.ArrayList;
 import org.threeten.bp.Duration;
 
 import com.google.pubsub.v1.PubsubMessage;
-import com.google.cloud.pubsublite.*;
-import com.google.cloud.pubsublite.cloudpubsub.*;
+import com.google.cloud.pubsublite.CloudRegion;
+import com.google.cloud.pubsublite.CloudZone;
+import com.google.cloud.pubsublite.ProjectNumber;
+import com.google.cloud.pubsublite.PublishMetadata;
+import com.google.cloud.pubsublite.TopicName;
+import com.google.cloud.pubsublite.TopicPath;
+import com.google.cloud.pubsublite.TopicPaths;
+import com.google.cloud.pubsublite.cloudpubsub.Publisher;
+import com.google.cloud.pubsublite.cloudpubsub.PublisherSettings;
 
 class DoPubLite implements Runnable {
     private DoPubLite() {}
@@ -114,7 +121,7 @@ class DoPubLite implements Runnable {
                 PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
 
                 // Publish a message. Messages are automatically batched.
-                ApiFuture<String> future = publisher.publish(pubsubMessage);
+                ApiFuture<String> future = this.publisher.publish(pubsubMessage);
                 futures.add(future);
             }
         } catch (Exception ex) {
