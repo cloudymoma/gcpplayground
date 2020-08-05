@@ -85,10 +85,14 @@ class DoSubLite implements Runnable {
         } catch (Exception ex) {
             logger.error("Failed to init subscriber", ex);
         }  
+
+        logger.info("Subscriber %s initialized", Thread.currentThread().getName());
     }
 
     @Override
     public void run() {
+        logger.info("Subscriber %s started", Thread.currentThread().getName());
+
         try {
             // Start the subscriber. Upon successful starting, its state will become RUNNING.
             subscriber.startAsync().awaitRunning();
@@ -105,6 +109,8 @@ class DoSubLite implements Runnable {
             // Shut down the subscriber. This will change the state of the subscriber to TERMINATED.
             subscriber.stopAsync().awaitTerminated();
             logger.info("Subscriber is shut down: %s", subscriber.state());
+
+            logger.info("Subscriber %s done", Thread.currentThread().getName());
         } catch (Exception ex) {
             logger.error("Error", ex);
         } /* finally {
