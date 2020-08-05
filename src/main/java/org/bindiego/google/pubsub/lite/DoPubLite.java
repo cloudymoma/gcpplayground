@@ -52,11 +52,15 @@ class DoPubLite implements Runnable {
         } catch (Exception ex) {
             logger.error("Failed to init publisher", ex);
         }
+
+        logger.info("Publisher %s initialized", Thread.currentThread().getName());
     }
 
     @Override
     public void run() {
         List<ApiFuture<String>> futures = new ArrayList<>();
+
+        logger.info("Publisher %s started", Thread.currentThread().getName());
 
         try {
             // compile a message delimited by comma
@@ -130,7 +134,7 @@ class DoPubLite implements Runnable {
                 if (publisher != null) {
                     // Shut down the publisher.
                     publisher.stopAsync().awaitTerminated();
-                    logger.info("Publisher is shut down.");
+                    logger.info("Publisher %s done.", Thread.currentThread().getName());
                 }
             } catch (InterruptedException ex) {
                 logger.error("Error finalizing Publisher", ex);
