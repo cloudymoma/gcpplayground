@@ -70,6 +70,9 @@ class DoPubLite implements Runnable {
         logger.info("Publisher %s started", Thread.currentThread().getName());
 
         try {
+            // Start the publisher. Upon successful starting, its state will become RUNNING.
+            this.publisher.startAsync().awaitRunning();
+            
             // compile a message delimited by comma
             // timestamp,thread_id,thread_name,order_num
             final String deli = ",";
