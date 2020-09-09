@@ -40,7 +40,6 @@ import com.google.cloud.pubsublite.ProjectNumber;
 import com.google.cloud.pubsublite.PublishMetadata;
 import com.google.cloud.pubsublite.TopicName;
 import com.google.cloud.pubsublite.TopicPath;
-import com.google.cloud.pubsublite.TopicPaths;
 import com.google.cloud.pubsublite.cloudpubsub.Publisher;
 import com.google.cloud.pubsublite.cloudpubsub.PublisherSettings;
 
@@ -82,7 +81,7 @@ class DoPubLite implements Runnable {
 
             // loop control, number of messages to be sent
             int numLoops = Integer.parseInt(
-                config.getProperty("google.pubsub.pub.threads.msgnum").toString());
+                config.getProperty("google.pubsublite.pub.threads.msgnum").toString());
 
             Random rand = new Random();
 

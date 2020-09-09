@@ -41,13 +41,11 @@ import com.google.cloud.pubsublite.CloudZone;
 import com.google.cloud.pubsublite.ProjectNumber;
 import com.google.cloud.pubsublite.TopicName;
 import com.google.cloud.pubsublite.TopicPath;
-import com.google.cloud.pubsublite.TopicPaths;
 import com.google.cloud.pubsublite.proto.Topic;
 import com.google.cloud.pubsublite.proto.Topic.PartitionConfig;
 import com.google.cloud.pubsublite.proto.Topic.RetentionConfig;
 import com.google.cloud.pubsublite.SubscriptionName;
 import com.google.cloud.pubsublite.SubscriptionPath;
-import com.google.cloud.pubsublite.SubscriptionPaths;
 import com.google.cloud.pubsublite.proto.Subscription;
 import com.google.cloud.pubsublite.proto.Subscription.DeliveryConfig;
 import com.google.cloud.pubsublite.proto.Subscription.DeliveryConfig.DeliveryRequirement;
@@ -70,17 +68,17 @@ public class PubSubLite extends Thread {
             String subId = config.getProperty("google.pubsublite.subscription").toString();
 
             this.topicPath =
-                TopicPaths.newBuilder()
-                    .setProjectNumber(ProjectNumber.of(projectNum))
-                    .setZone(CloudZone.of(CloudRegion.of(region), zoneId))
-                    .setTopicName(TopicName.of(topicId))
+                TopicPath.newBuilder()
+                    .setProject(ProjectNumber.of(projectNum))
+                    .setLocation(CloudZone.of(CloudRegion.of(region), zoneId))
+                    .setName(TopicName.of(topicId))
                     .build();
 
             this.subscriptionPath =
-                SubscriptionPaths.newBuilder()
-                    .setProjectNumber(ProjectNumber.of(projectNum))
-                    .setZone(CloudZone.of(CloudRegion.of(region), zoneId))
-                    .setSubscriptionName(SubscriptionName.of(subId))
+                SubscriptionPath.newBuilder()
+                    .setProject(ProjectNumber.of(projectNum))
+                    .setLocation(CloudZone.of(CloudRegion.of(region), zoneId))
+                    .setName(SubscriptionName.of(subId))
                     .build();
 
             this.topic =
@@ -107,7 +105,7 @@ public class PubSubLite extends Thread {
                                 Integer.parseInt(
                                     config.getProperty("google.pubsublite.partitions.storage.gb").toString())
                                 * 1024 * 1024 * 1024L))
-                    .setName(topicPath.value())
+                    .setName(topicPath.toString())
                     .build();
 
             this.subscription =
@@ -120,8 +118,8 @@ public class PubSubLite extends Thread {
                         // may be a gap at that offset.
                         DeliveryConfig.newBuilder()
                             .setDeliveryRequirement(DeliveryRequirement.DELIVER_IMMEDIATELY))
-                    .setName(subscriptionPath.value())
-                    .setTopic(topicPath.value())
+                    .setName(subscriptionPath.toString())
+                    .setTopic(topicPath.toString())
                     .build();
 
             this.adminClientSettings =

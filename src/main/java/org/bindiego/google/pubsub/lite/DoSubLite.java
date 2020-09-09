@@ -33,7 +33,6 @@ import com.google.cloud.pubsublite.Partition;
 import com.google.cloud.pubsublite.ProjectNumber;
 import com.google.cloud.pubsublite.SubscriptionName;
 import com.google.cloud.pubsublite.SubscriptionPath;
-import com.google.cloud.pubsublite.SubscriptionPaths;
 import com.google.cloud.pubsublite.cloudpubsub.FlowControlSettings;
 import com.google.cloud.pubsublite.cloudpubsub.Subscriber;
 import com.google.cloud.pubsublite.cloudpubsub.SubscriberSettings;
@@ -104,7 +103,7 @@ class DoSubLite implements Runnable {
         try {
             // Start the subscriber. Upon successful starting, its state will become RUNNING.
             subscriber.startAsync().awaitRunning();
-            logger.info("Listening to messages on %s ...", this.subscriptionPath.value());
+            logger.info("Listening to messages on %s ...", this.subscriptionPath.toString());
 
             // Allow the subscriber to run indefinitely unless an unrecoverable error occurs
             // subscriber.awaitTerminated();

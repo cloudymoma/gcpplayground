@@ -31,8 +31,8 @@
         <jasypt.version>1.9.3</jasypt.version>
         <gcp.core.ver>1.93.7</gcp.core.ver>
         <gcp.trans.ver>1.95.0</gcp.trans.ver>
-        <gcp.pubsub.ver>1.108.0</gcp.pubsub.ver>
-        <gcp.pubsublite.ver>0.1.7</gcp.pubsublite.ver>
+        <gcp.pubsub.ver>1.108.1</gcp.pubsub.ver>
+        <gcp.pubsublite.ver>0.3.0</gcp.pubsublite.ver>
         <gcp.bq.ver>1.116.6</gcp.bq.ver>
         <gcp.firestore.ver>1.32.5</gcp.firestore.ver>
         <gcp.redis.ver>1.0.0</gcp.redis.ver>
