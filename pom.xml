@@ -16,7 +16,7 @@
         <project.javadoc.protobufBaseURL>https://googleapis.dev/java/google-api-grpc/latest</project.javadoc.protobufBaseURL>
         <github.global.server>github</github.global.server>
         <site.installationModule>google-cloud-clients</site.installationModule>
-        <guava.version>29.0-jre</guava.version>
+        <guava.version>30.0-jre</guava.version>
         <grpc.version>1.24.1</grpc.version>
         <google.auth.version>0.18.0</google.auth.version>
         <oauth-client.version>1.30.4</oauth-client.version>
