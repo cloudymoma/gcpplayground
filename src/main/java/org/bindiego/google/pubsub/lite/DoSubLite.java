@@ -40,12 +40,14 @@ import com.google.cloud.pubsublite.cloudpubsub.SubscriberSettings;
 class DoSubLite implements Runnable {
     private DoSubLite() {}
 
-    public DoSubLite(SubscriptionPath subscriptionPath, CredentialsProvider credentialsProvider){
+    public DoSubLite(SubscriptionPath subscriptionPath, 
+            CredentialsProvider credentialsProvider,
+            List<Integer> partitionNumbers){
         // Instantiate or get the current Global config
         this.config = Config.getConfig();
         this.subscriptionPath = subscriptionPath;
         this.credentialsProvider = credentialsProvider;
-        this.partitionNumbers = ImmutableList.of(0);
+        this.partitionNumbers = partitionNumbers;
 
         try {
             // The message stream is paused based on the maximum size or number of messages that the
@@ -76,7 +78,7 @@ class DoSubLite implements Runnable {
                 };
 
             List<Partition> partitions = new ArrayList<>();
-            for (Integer num : partitionNumbers) {
+            for (Integer num : this.partitionNumbers) {
                     partitions.add(Partition.of(num));
             }
 

@@ -147,8 +147,6 @@ class DoPubLite implements Runnable {
                 }
             } catch (InterruptedException ex) {
                 logger.error("Error finalizing Publisher", ex);
-            } catch (StatusException ex) {
-                logger.error("gRPC Error", ex);
             } catch (Exception ex) {
                 logger.error("Error", ex);
             }

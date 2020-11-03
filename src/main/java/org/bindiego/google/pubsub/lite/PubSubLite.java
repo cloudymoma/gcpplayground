@@ -19,6 +19,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutionException;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.grpc.Status.Code;
 import io.grpc.StatusException;
@@ -62,7 +64,7 @@ public class PubSubLite extends Thread {
             char zoneId = config.getProperty("google.pubsublite.zone").toString().charAt(0);
 
             String topicId = config.getProperty("google.pubsublite.topic").toString();
-            Integer partitions = Integer.valueOf(
+            this.numPartitions = Integer.valueOf(
                 config.getProperty("google.pubsublite.partitions").toString());
 
             String subId = config.getProperty("google.pubsublite.subscription").toString();
@@ -90,7 +92,7 @@ public class PubSubLite extends Thread {
                         // topic with `scale` of 2 and count of 10 is charged for 20 partitions.
                         .setScale(Integer.parseInt(
                             config.getProperty("google.pubsublite.partitions.scale").toString()))
-                        .setCount(partitions))
+                        .setCount(this.numPartitions))
                     .setRetentionConfig(
                         RetentionConfig.newBuilder()
                             // How long messages are retained.
@@ -126,8 +128,8 @@ public class PubSubLite extends Thread {
                 AdminClientSettings.newBuilder().setRegion(CloudRegion.of(region)).build();
 
             this.adminClient = AdminClient.create(this.adminClientSettings);
-        } catch (StatusException ex) {
-            logger.error("gRPC Error", ex);
+        } catch (Exception ex) {
+            logger.error("Error", ex);
         }
     }
 
@@ -202,15 +204,39 @@ public class PubSubLite extends Thread {
         }
 
         // Run subscriber threads
-        int numSubThreads = Integer.parseInt(
-            config.getProperty("google.pubsublite.sub.threads").toString());
-        execSub = Executors.newFixedThreadPool(numSubThreads);
+        if (config.getProperty("google.pubsublite.sub.threads.dedicated.partition").toString().equalsIgnoreCase("off")) {
+            // every thread will consume from all partitions
+            int numSubThreads = Integer.parseInt(
+                config.getProperty("google.pubsublite.sub.threads").toString());
+            execSub = Executors.newFixedThreadPool(numSubThreads);
 
-        for (int i = 0; i < numSubThreads; ++i) {
-            execSub.execute(
-                new DoSubLite(
-                    this.subscriptionPath,
-                    credentialsProvider));
+            List<Integer> partitionNumbers = new ArrayList<>();
+            for (int i = 0; i < this.numPartitions.intValue(); ++i) {
+                partitionNumbers.add(Integer.valueOf(i));
+            }
+
+            for (int i = 0; i < numSubThreads; ++i) {
+                execSub.execute(
+                    new DoSubLite(
+                        this.subscriptionPath,
+                        credentialsProvider,
+                        partitionNumbers));
+            }
+        } else if (config.getProperty("google.pubsublite.sub.threads.dedicated.partition").toString().equalsIgnoreCase("on")) {
+            // FIXME: each thread will only consume one partition, so numThreads = numPartitions
+            int numSubThreads = this.numPartitions.intValue();
+            execSub = Executors.newFixedThreadPool(numSubThreads);
+
+            for (int i = 0; i < numSubThreads; ++i) {
+                List<Integer> partitionNumbers = new ArrayList<>();
+                partitionNumbers.add(Integer.valueOf(i));
+
+                execSub.execute(
+                    new DoSubLite(
+                        this.subscriptionPath,
+                        credentialsProvider,
+                        partitionNumbers));
+            }
         }
 
         execPub.shutdown();
@@ -235,4 +261,6 @@ public class PubSubLite extends Thread {
 
     private AdminClientSettings adminClientSettings;
     private AdminClient adminClient;
+
+    private Integer numPartitions;
 }
