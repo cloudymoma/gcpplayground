@@ -32,7 +32,7 @@
         <gcp.core.ver>1.93.7</gcp.core.ver>
         <gcp.trans.ver>1.95.0</gcp.trans.ver>
         <gcp.pubsub.ver>1.108.6</gcp.pubsub.ver>
-        <gcp.pubsublite.ver>0.6.1</gcp.pubsublite.ver>
+        <gcp.pubsublite.ver>0.6.2</gcp.pubsublite.ver>
         <gcp.bq.ver>1.116.6</gcp.bq.ver>
         <gcp.firestore.ver>1.32.5</gcp.firestore.ver>
         <gcp.redis.ver>1.0.0</gcp.redis.ver>
