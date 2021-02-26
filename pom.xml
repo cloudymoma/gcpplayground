@@ -37,6 +37,7 @@
         <gcp.firestore.ver>1.32.5</gcp.firestore.ver>
         <gcp.redis.ver>1.0.0</gcp.redis.ver>
         <gcp.gcs.ver>1.111.2</gcp.gcs.ver>
+        <gcp.dialogflow.ver>2.5.1</gcp.dialogflow.ver>
         <threeten.ver>1.4.0</threeten.ver>
         <google.flogger.ver>0.5.1</google.flogger.ver>
     </properties>
@@ -217,7 +218,7 @@
             <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>libraries-bom</artifactId>
-            <version>8.1.0</version>
+            <version>18.0.0</version>
             <type>pom</type>
             <scope>import</scope>
             </dependency>
@@ -406,6 +407,13 @@
             <artifactId>flogger-system-backend</artifactId>
             <version>${google.flogger.ver}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- Dialogflow -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-dialogflow</artifactId>
+            <version>${gcp.dialogflow.ver}</version>
         </dependency>
     </dependencies>
 </project>
