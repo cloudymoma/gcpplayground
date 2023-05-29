@@ -9,14 +9,15 @@
     <url>http://maven.apache.org</url>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <log4j.version>2.13.3</log4j.version>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.javadoc.protobufBaseURL>https://googleapis.dev/java/google-api-grpc/latest</project.javadoc.protobufBaseURL>
         <github.global.server>github</github.global.server>
         <site.installationModule>google-cloud-clients</site.installationModule>
-        <guava.version>30.0-jre</guava.version>
+        <guava.version>31.1-jre</guava.version>
         <grpc.version>1.24.1</grpc.version>
         <google.auth.version>0.18.0</google.auth.version>
         <oauth-client.version>1.30.4</oauth-client.version>
@@ -29,17 +30,18 @@
         <cmn.fileup>1.4</cmn.fileup>
         <cmn.beanutils>1.9.4</cmn.beanutils>
         <jasypt.version>1.9.3</jasypt.version>
-        <gcp.core.ver>1.93.7</gcp.core.ver>
-        <gcp.trans.ver>1.95.0</gcp.trans.ver>
-        <gcp.pubsub.ver>1.109.0</gcp.pubsub.ver>
-        <gcp.pubsublite.ver>0.6.5</gcp.pubsublite.ver>
-        <gcp.bq.ver>1.116.6</gcp.bq.ver>
-        <gcp.firestore.ver>1.32.5</gcp.firestore.ver>
-        <gcp.redis.ver>1.0.0</gcp.redis.ver>
-        <gcp.gcs.ver>1.111.2</gcp.gcs.ver>
-        <gcp.dialogflow.ver>2.5.1</gcp.dialogflow.ver>
-        <threeten.ver>1.4.0</threeten.ver>
-        <google.flogger.ver>0.5.1</google.flogger.ver>
+        <google.grpc.ver>1.105.12</google.grpc.ver>
+        <gcp.core.ver>2.9.4</gcp.core.ver>
+        <gcp.trans.ver>2.9.0</gcp.trans.ver>
+        <gcp.pubsub.ver>1.123.12</gcp.pubsub.ver>
+        <gcp.pubsublite.ver>1.9.4</gcp.pubsublite.ver>
+        <gcp.bq.ver>2.22.0</gcp.bq.ver>
+        <gcp.firestore.ver>3.7.10</gcp.firestore.ver>
+        <gcp.redis.ver>2.13.0</gcp.redis.ver>
+        <gcp.gcs.ver>2.18.0</gcp.gcs.ver>
+        <gcp.dialogflow.ver>4.16.0</gcp.dialogflow.ver>
+        <threeten.ver>1.6.5</threeten.ver>
+        <google.flogger.ver>0.7.4</google.flogger.ver>
     </properties>
 
     <distributionManagement>
@@ -118,7 +120,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -128,7 +130,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.3.1</version>
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
@@ -165,6 +167,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -192,7 +195,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.21.0</version>
+                <version>3.1.0</version>
                 <configuration>
                     <printSummary>false</printSummary>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
@@ -204,7 +207,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.7</version>
+                <version>3.1.1</version>
             </plugin>
         </plugins>
     </build>
@@ -341,6 +344,16 @@
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-pubsub</artifactId>
             <version>${gcp.pubsub.ver}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api.grpc</groupId>
+            <artifactId>proto-google-cloud-pubsub-v1</artifactId>
+            <version>${google.grpc.ver}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api.grpc</groupId>
+            <artifactId>grpc-google-cloud-pubsub-v1</artifactId>
+            <version>${google.grpc.ver}</version>
         </dependency>
 
         <!-- google cloud pubsub lite client -->

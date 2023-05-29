@@ -21,7 +21,7 @@ import com.google.cloud.pubsub.v1.Publisher;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.Timestamp.Builder;
-import com.google.pubsub.v1.ProjectTopicName;
+import com.google.pubsub.v1.TopicName;
 import com.google.pubsub.v1.PubsubMessage;
 import java.io.FileInputStream;
 import java.util.UUID;
@@ -35,7 +35,7 @@ import org.threeten.bp.Duration;
 class DoPub implements Runnable {
     private DoPub() {}
 
-    public DoPub(ProjectTopicName topicName, CredentialsProvider credentialsProvider){
+    public DoPub(TopicName topicName, CredentialsProvider credentialsProvider){
         // Instantiate or get the current Global config
         config = Config.getConfig();
 

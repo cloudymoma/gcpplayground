@@ -37,7 +37,7 @@ import com.google.pubsub.v1.PubsubMessage;
 import com.google.cloud.pubsublite.CloudRegion;
 import com.google.cloud.pubsublite.CloudZone;
 import com.google.cloud.pubsublite.ProjectNumber;
-import com.google.cloud.pubsublite.PublishMetadata;
+import com.google.cloud.pubsublite.MessageMetadata;
 import com.google.cloud.pubsublite.TopicName;
 import com.google.cloud.pubsublite.TopicPath;
 import com.google.cloud.pubsublite.cloudpubsub.Publisher;
@@ -130,12 +130,12 @@ class DoPubLite implements Runnable {
             logger.error("Error", ex);
         } finally {
             try {
-                ArrayList<PublishMetadata> metadata = new ArrayList<>();
+                ArrayList<MessageMetadata> metadata = new ArrayList<>();
                 List<String> ackIds = ApiFutures.allAsList(futures).get();
 
                 for (String id : ackIds) {
                     // Decoded metadata contains partition and offset.
-                    metadata.add(PublishMetadata.decode(id));
+                    metadata.add(MessageMetadata.decode(id));
                 }
 
                 logger.info("%s\nPublished %d messages", metadata, ackIds.size());

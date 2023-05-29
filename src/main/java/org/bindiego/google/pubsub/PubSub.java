@@ -30,12 +30,12 @@ import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutures;
 import com.google.protobuf.ByteString;
 
-import com.google.pubsub.v1.ProjectTopicName;
+import com.google.pubsub.v1.TopicName;
+import com.google.pubsub.v1.Topic;
+import com.google.pubsub.v1.SubscriptionName;
 import com.google.pubsub.v1.ProjectSubscriptionName;
-import com.google.pubsub.v1.PushConfig;
 import com.google.pubsub.v1.Subscription;
-import com.google.pubsub.v1.PubsubMessage;
-import com.google.pubsub.v1.ProjectSubscriptionName;
+import com.google.pubsub.v1.PushConfig;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.cloud.ServiceOptions;
 import com.google.cloud.pubsub.v1.TopicAdminClient;
@@ -72,14 +72,15 @@ public class PubSub extends Thread {
         logger.info("Setup the pubsub topic and subscription");
 
         logger.info("creating topic");
-        ProjectTopicName topicName = ProjectTopicName.of(projectId, topicId);
+        TopicName topicName = TopicName.of(projectId, topicId);
         try {
             TopicAdminSettings topicAdminSettings =
                  TopicAdminSettings.newBuilder()
                      .setCredentialsProvider(credentialsProvider)
                      .build();
             TopicAdminClient topicAdminClient = TopicAdminClient.create(topicAdminSettings);
-            topicAdminClient.createTopic(topicName);
+            Topic topic = topicAdminClient.createTopic(topicName);
+
             logger.info("Topic %s:%s created.\n", topicName.getProject(), topicName.getTopic());
         } catch (java.io.IOException ex) {
             logger.error("IOException", ex);
@@ -91,18 +92,19 @@ public class PubSub extends Thread {
         }
 
         logger.info("creating the subscription");
-        ProjectSubscriptionName subscriptionName = ProjectSubscriptionName.of(
-            projectId, subscriptionId);
         try {
             SubscriptionAdminSettings subscriptionAdminSettings =
                 SubscriptionAdminSettings.newBuilder()
                      .setCredentialsProvider(credentialsProvider)
                     .build();
             SubscriptionAdminClient subscriptionAdminClient = SubscriptionAdminClient.create(subscriptionAdminSettings);
-            // create a pull subscription with default acknowledgement deadline (= 10 seconds)
+            SubscriptionName subscriptionName = SubscriptionName.of(projectId, subscriptionId);
+            // Create a pull subscription with default acknowledgement deadline of 10 seconds.
+            // Messages not successfully acknowledged within 10 seconds will get resent by the server.
             Subscription subscription =
                 subscriptionAdminClient.createSubscription(
-                    subscriptionName, topicName, PushConfig.getDefaultInstance(), 0);
+                    subscriptionName, topicName, PushConfig.getDefaultInstance(), 10);
+
             logger.info(
                 "Subscription %s:%s created.\n",
                 subscriptionName.getProject(), subscriptionName.getSubscription());
@@ -147,7 +149,7 @@ public class PubSub extends Thread {
         for (int i = 0; i < numPubThreads; ++i) {
             execPub.execute(
                 new DoPub(
-                    ProjectTopicName.of(projectId, topicId), 
+                    TopicName.of(projectId, topicId), 
                     credentialsProvider));
         }
 
