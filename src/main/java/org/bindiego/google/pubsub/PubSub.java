@@ -30,12 +30,12 @@ import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutures;
 import com.google.protobuf.ByteString;
 
-import com.google.pubsub.v1.ProjectTopicName;
+import com.google.pubsub.v1.TopicName;
+import com.google.pubsub.v1.Topic;
+import com.google.pubsub.v1.SubscriptionName;
 import com.google.pubsub.v1.ProjectSubscriptionName;
-import com.google.pubsub.v1.PushConfig;
 import com.google.pubsub.v1.Subscription;
-import com.google.pubsub.v1.PubsubMessage;
-import com.google.pubsub.v1.ProjectSubscriptionName;
+import com.google.pubsub.v1.PushConfig;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.cloud.ServiceOptions;
 import com.google.cloud.pubsub.v1.TopicAdminClient;
@@ -72,14 +72,15 @@ public class PubSub extends Thread {
         logger.info("Setup the pubsub topic and subscription");
 
         logger.info("creating topic");
-        ProjectTopicName topicName = ProjectTopicName.of(projectId, topicId);
+        TopicName topicName = TopicName.of(projectId, topicId);
         try {
             TopicAdminSettings topicAdminSettings =
                  TopicAdminSettings.newBuilder()
                      .setCredentialsProvider(credentialsProvider)
                      .build();
             TopicAdminClient topicAdminClient = TopicAdminClient.create(topicAdminSettings);
-            topicAdminClient.createTopic(topicName);
+            Topic topic = topicAdminClient.createTopic(topicName);
+
             logger.info("Topic %s:%s created.\n", topicName.getProject(), topicName.getTopic());
         } catch (java.io.IOException ex) {
             logger.error("IOException", ex);
@@ -91,18 +92,19 @@ public class PubSub extends Thread {
         }
 
         logger.info("creating the subscription");
-        ProjectSubscriptionName subscriptionName = ProjectSubscriptionName.of(
-            projectId, subscriptionId);
         try {
             SubscriptionAdminSettings subscriptionAdminSettings =
                 SubscriptionAdminSettings.newBuilder()
                      .setCredentialsProvider(credentialsProvider)
                     .build();
             SubscriptionAdminClient subscriptionAdminClient = SubscriptionAdminClient.create(subscriptionAdminSettings);
-            // create a pull subscription with default acknowledgement deadline (= 10 seconds)
+            SubscriptionName subscriptionName = SubscriptionName.of(projectId, subscriptionId);
+            // Create a pull subscription with default acknowledgement deadline of 10 seconds.
+            // Messages not successfully acknowledged within 10 seconds will get resent by the server.
             Subscription subscription =
                 subscriptionAdminClient.createSubscription(
-                    subscriptionName, topicName, PushConfig.getDefaultInstance(), 0);
+                    subscriptionName, topicName, PushConfig.getDefaultInstance(), 10);
+
             logger.info(
                 "Subscription %s:%s created.\n",
                 subscriptionName.getProject(), subscriptionName.getSubscription());
@@ -135,40 +137,47 @@ public class PubSub extends Thread {
             logger.info("Skip creation of publication and subscriptions");
         }
 
-        // Setup the pub threading pool
-        // pubbq = new ArrayBlockingQueue<Runnable>(128);
-        // execPub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, pubbq);
+        if (config.getProperty("google.pubsub.pub").toString().equalsIgnoreCase("on")) {
+            // Setup the pub threading pool
+            // pubbq = new ArrayBlockingQueue<Runnable>(128);
+            // execPub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, pubbq);
 
-        // Run threads
-        int numPubThreads = Integer.parseInt(
-            config.getProperty("google.pubsub.pub.threads").toString());
-        execPub = Executors.newFixedThreadPool(numPubThreads);
-
-        for (int i = 0; i < numPubThreads; ++i) {
-            execPub.execute(
-                new DoPub(
-                    ProjectTopicName.of(projectId, topicId), 
-                    credentialsProvider));
+            // Run threads
+            int numPubThreads = Integer.parseInt(
+                config.getProperty("google.pubsub.pub.threads").toString());
+            execPub = Executors.newFixedThreadPool(numPubThreads);
+            
+            for (int i = 0; i < numPubThreads; ++i) {
+                execPub.execute(
+                    new DoPub(
+                        TopicName.of(projectId, topicId), 
+                        credentialsProvider));
+            }
         }
 
-        // Setup the sub threading pool
-        // subbq = new ArrayBlockingQueue<Runnable>(128);
-        // execSub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, subbq);
+        if (config.getProperty("google.pubsub.sub").toString().equalsIgnoreCase("on")) {
+            // Setup the sub threading pool
+            // subbq = new ArrayBlockingQueue<Runnable>(128);
+            // execSub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, subbq);
 
-        // Run threads
-        int numSubThreads = Integer.parseInt(
-            config.getProperty("google.pubsub.sub.threads").toString());
-        execSub = Executors.newFixedThreadPool(numSubThreads);
+            // Run threads
+            int numSubThreads = Integer.parseInt(
+                config.getProperty("google.pubsub.sub.threads").toString());
+            execSub = Executors.newFixedThreadPool(numSubThreads);
 
-        for (int i = 0; i < numSubThreads; ++i) {
-            execSub.execute(
-                new DoSub(
-                    ProjectSubscriptionName.of(projectId, subscriptionId),
-                    credentialsProvider));
+            for (int i = 0; i < numSubThreads; ++i) {
+                execSub.execute(
+                    new DoSub(
+                        ProjectSubscriptionName.of(projectId, subscriptionId),
+                        credentialsProvider));
+            }
         }
 
-        execPub.shutdown();
-        execSub.shutdown();
+        if (config.getProperty("google.pubsub.pub").toString().equalsIgnoreCase("on"))
+            execPub.shutdown();
+
+        if (config.getProperty("google.pubsub.sub").toString().equalsIgnoreCase("on"))
+            execSub.shutdown();
     }
 
     private static final Logger logger =

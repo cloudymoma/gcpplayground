@@ -9,37 +9,37 @@
     <url>http://maven.apache.org</url>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <log4j.version>2.17.1</log4j.version>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.javadoc.protobufBaseURL>https://googleapis.dev/java/google-api-grpc/latest</project.javadoc.protobufBaseURL>
         <github.global.server>github</github.global.server>
         <site.installationModule>google-cloud-clients</site.installationModule>
-        <guava.version>30.0-jre</guava.version>
-        <grpc.version>1.24.1</grpc.version>
-        <google.auth.version>0.18.0</google.auth.version>
-        <oauth-client.version>1.30.4</oauth-client.version>
-        <protobuf.version>3.10.0</protobuf.version>
+        <guava.version>31.1-jre</guava.version>
+        <grpc.bom.version>1.55.1</grpc.bom.version>
+        <protobuf.bom.version>3.23.2</protobuf.bom.version>
+        <tomcat.ann.ver>6.0.53</tomcat.ann.ver>
+        
+        <google.api.ver>2.2.0</google.api.ver>
+        <google.gax.ver>2.28.1</google.gax.ver>
+        <google.auth.bom>1.17.0</google.auth.bom>
+        <google.grpc.ver>1.105.12</google.grpc.ver>
+        <gcp.lib.bom>26.15.0</gcp.lib.bom>
+        <gson.ver>2.10.1</gson.ver>
+
         <cmn.config>1.10</cmn.config>
-        <cmn.io>2.6</cmn.io>
+        <cmn.io>2.7</cmn.io>
         <cmn.cli>1.4</cmn.cli>
         <cmn.math>3.6.1</cmn.math>
-        <cmn.compress>1.19</cmn.compress>
+        <cmn.compress>1.21</cmn.compress>
         <cmn.fileup>1.4</cmn.fileup>
         <cmn.beanutils>1.9.4</cmn.beanutils>
         <jasypt.version>1.9.3</jasypt.version>
-        <gcp.core.ver>1.93.7</gcp.core.ver>
-        <gcp.trans.ver>1.95.0</gcp.trans.ver>
-        <gcp.pubsub.ver>1.109.0</gcp.pubsub.ver>
-        <gcp.pubsublite.ver>0.6.5</gcp.pubsublite.ver>
-        <gcp.bq.ver>1.116.6</gcp.bq.ver>
-        <gcp.firestore.ver>1.32.5</gcp.firestore.ver>
-        <gcp.redis.ver>1.0.0</gcp.redis.ver>
-        <gcp.gcs.ver>1.111.2</gcp.gcs.ver>
-        <gcp.dialogflow.ver>2.5.1</gcp.dialogflow.ver>
-        <threeten.ver>1.4.0</threeten.ver>
-        <google.flogger.ver>0.5.1</google.flogger.ver>
+
+        <threeten.ver>1.6.5</threeten.ver>
+        <google.flogger.ver>0.7.4</google.flogger.ver>
     </properties>
 
     <distributionManagement>
@@ -114,11 +114,18 @@
     </pluginRepositories>
 
     <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.7.1</version>
+            </extension>
+        </extensions>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -128,7 +135,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.3.1</version>
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
@@ -136,7 +143,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -165,6 +172,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -192,7 +200,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.21.0</version>
+                <version>3.1.0</version>
                 <configuration>
                     <printSummary>false</printSummary>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
@@ -204,7 +212,25 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.7</version>
+                <version>3.1.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>0.6.1</version>
+                <configuration>
+                    <protocArtifact>com.google.protobuf:protoc:3.21.7:exe:${os.detected.classifier}</protocArtifact>
+                    <pluginId>grpc-java</pluginId>
+                    <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.55.1:exe:${os.detected.classifier}</pluginArtifact>
+                </configuration>
+                <executions>
+                    <execution>
+                    <goals>
+                        <goal>compile</goal>
+                        <goal>compile-custom</goal>
+                    </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -216,11 +242,32 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>libraries-bom</artifactId>
-            <version>18.0.0</version>
-            <type>pom</type>
-            <scope>import</scope>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>libraries-bom</artifactId>
+                <version>${gcp.lib.bom}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.auth</groupId>
+                <artifactId>google-auth-library-bom</artifactId>
+                <version>${google.auth.bom}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-bom</artifactId>
+                <version>${grpc.bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-bom</artifactId>
+                <version>${protobuf.bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -229,7 +276,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13</version>
+            <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
 
@@ -319,79 +366,67 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-core</artifactId>
-            <version>${gcp.core.ver}</version>
         </dependency>
 
         <!-- google cloud translate client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-translate</artifactId>
-            <version>${gcp.trans.ver}</version>
         </dependency>
 
         <!-- google cloud bigquery client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-bigquery</artifactId>
-            <version>${gcp.bq.ver}</version>
         </dependency>
 
         <!-- google cloud pubsub client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-pubsub</artifactId>
-            <version>${gcp.pubsub.ver}</version>
         </dependency>
+        <!--
+        <dependency>
+            <groupId>com.google.api.grpc</groupId>
+            <artifactId>proto-google-cloud-pubsub-v1</artifactId>
+            <version>${google.grpc.ver}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api.grpc</groupId>
+            <artifactId>grpc-google-cloud-pubsub-v1</artifactId>
+            <version>${google.grpc.ver}</version>
+        </dependency>
+        -->
 
         <!-- google cloud pubsub lite client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-pubsublite</artifactId>
-            <version>${gcp.pubsublite.ver}</version>
         </dependency>
 
         <!-- google cloud memorystore client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-redis</artifactId>
-            <version>${gcp.redis.ver}</version>
         </dependency>
 
         <!-- google cloud firetore client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-firestore</artifactId>
-            <version>${gcp.firestore.ver}</version>
         </dependency>
 
         <!-- google cloud storage client -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-storage</artifactId>
-            <version>${gcp.gcs.ver}</version>
         </dependency>
 
         <!-- Google stuff -->
         <dependency>
-            <groupId>com.google.auth</groupId>
-            <artifactId>google-auth-library-bom</artifactId>
-            <version>${google.auth.version}</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-bom</artifactId>
-            <version>${grpc.version}</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-bom</artifactId>
-            <version>${protobuf.version}</version>
-            <type>pom</type>
-            <scope>import</scope>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.ver}</version>
         </dependency>
 
         <!-- threeten.org -->
@@ -413,7 +448,6 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-dialogflow</artifactId>
-            <version>${gcp.dialogflow.ver}</version>
         </dependency>
     </dependencies>
 </project>
