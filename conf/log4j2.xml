@@ -21,7 +21,7 @@
     </Appenders>
     <Loggers>
         <Root level="trace">
-            <AppenderRef ref="stdout" level="DEBUG"/>
+            <AppenderRef ref="stdout" level="INFO"/>
             <AppenderRef ref="rollingfile" level="DEBUG"/>
         </Root>
     </Loggers>
