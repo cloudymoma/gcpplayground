@@ -9,7 +9,11 @@ import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
 import com.google.api.gax.rpc.ApiException;
+import com.google.api.gax.core.ExecutorProvider;
+import com.google.api.gax.core.InstantiatingExecutorProvider;
 import com.google.api.gax.batching.BatchingSettings;
+import com.google.api.gax.batching.FlowControlSettings;
+import com.google.api.gax.batching.FlowController.LimitExceededBehavior;
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.ExecutorProvider;
 import com.google.api.gax.core.FixedExecutorProvider;
@@ -23,6 +27,7 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.Timestamp.Builder;
 import com.google.pubsub.v1.TopicName;
 import com.google.pubsub.v1.PubsubMessage;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.io.FileInputStream;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -40,6 +45,16 @@ class DoPub implements Runnable {
         config = Config.getConfig();
 
         try {
+            // Configure how many messages the publisher client can hold in memory
+            // and what to do when messages exceed the limit.
+            FlowControlSettings flowControlSettings =
+                FlowControlSettings.newBuilder()
+                    // Block more messages from being published when the limit is reached. The other
+                    // options are Ignore (or continue publishing) and ThrowException (or error out).
+                    .setLimitExceededBehavior(LimitExceededBehavior.Block)
+                    .setMaxOutstandingRequestBytes(10 * 1024 * 1024L) // 10 MiB
+                    .setMaxOutstandingElementCount(100L) // 100 messages
+                    .build();
             // batch settings
             long requestBytesThreshold = 5000L; // default : 1 byte
             long messageCountBatchSize = 10L; // default : 1 message
@@ -52,6 +67,7 @@ class DoPub implements Runnable {
                     .setElementCountThreshold(messageCountBatchSize)
                     .setRequestByteThreshold(requestBytesThreshold)
                     .setDelayThreshold(publishDelayThreshold)
+                    .setFlowControlSettings(flowControlSettings)
                     .build();
 
             // retry settings
@@ -73,14 +89,20 @@ class DoPub implements Runnable {
                     .setTotalTimeout(totalTimeout)
                     .build();
 
-            // create the publisher
+            // Provides an executor service for processing messages. The default
+            // `executorProvider` used by the publisher has a default thread count of
+            // 5 * the number of processors available to the Java virtual machine.
+            ExecutorProvider executorProvider =
+                InstantiatingExecutorProvider.newBuilder()
+                    .setExecutorThreadCount(4)
+                    .build();
+
             publisher = Publisher.newBuilder(topicName)
                 .setCredentialsProvider(credentialsProvider)
                 .setBatchingSettings(batchingSettings)
                 .setRetrySettings(retrySettings)
+                .setExecutorProvider(executorProvider)
                 .build();
-
-            this.awaitedFutures = new AtomicLong();
         } catch (Exception ex) {
             logger.error("Failed to init publisher", ex);
         }
@@ -89,8 +111,6 @@ class DoPub implements Runnable {
     @Override
     public void run() {
         try {
-            awaitedFutures.incrementAndGet();
-
             // compile a message delimited by comma
             // timestamp,thread_id,thread_name,order_num
             final String deli = ",";
@@ -120,8 +140,6 @@ class DoPub implements Runnable {
              * - metrics1
              */
             for (int i = 0; i < numLoops; ++i) {
-                awaitedFutures.incrementAndGet();
-                
                 // introduce a random delay in 5s, 10s and 30s for event time
                 final long[] delay = {5000L, 10000L, 30000L};
                 final long millis = (0 == rand.nextInt(2)) ? 
@@ -153,36 +171,37 @@ class DoPub implements Runnable {
                         .putAttributes("timestamp", Long.toString(millis)) // Exact Java Milli ¯\_(ツ)_/¯
                         .build();
 
-                ApiFuture<String> response = publisher.publish(pubsubMessage);
-                response.addListener(
-                    () -> {
-                        try {
-                            response.get();
-                        } catch (Exception ex) {
-                            logger.warn("Could not publish a message: " + ex);
-                        } finally {
-                            awaitedFutures.decrementAndGet();
+                // Once published, returns a server-assigned message id (unique within the topic)
+                ApiFuture<String> future = publisher.publish(pubsubMessage);
+
+                // Add an asynchronous callback to handle success / failure
+                ApiFutures.addCallback(
+                    future,
+                    new ApiFutureCallback<String>() {
+
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        if (throwable instanceof ApiException) {
+                            ApiException apiException = ((ApiException) throwable);
+                            // details on the API exception
+                            logger.error(apiException.getStatusCode().getCode());
+                            logger.error(apiException.isRetryable());
                         }
+                        logger.error("Error publishing message : " + message);
+                    }
+
+                    @Override
+                    public void onSuccess(String messageId) {
+                        // Once published, returns server-assigned message ids (unique within the topic)
+                        logger.info("Published message ID: " + messageId);
+                    }
                     },
-                    executor
-                );
+                    MoreExecutors.directExecutor());
             }
 
-            awaitedFutures.decrementAndGet();
         } catch (Exception ex) {
             logger.error("Error", ex);
         } finally {
-            // wait for publishes
-            try {
-                while(awaitedFutures.longValue() > 0) {
-                    Thread.sleep(2000);
-                }
-            } catch (InterruptedException ex) {
-                logger.error("Error while waiting for completion: " + ex);
-            }
-
-            executor.shutdown();
-
             // showdown
             if (null != publisher) {
                 try {
@@ -203,7 +222,4 @@ class DoPub implements Runnable {
     private PropertiesConfiguration config;
     
     private Publisher publisher;
-
-    private AtomicLong awaitedFutures;
-    private ExecutorService executor = Executors.newCachedThreadPool();
 }

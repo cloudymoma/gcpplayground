@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.threeten.bp.Duration;
 
 class DoSub implements Runnable {
@@ -45,18 +47,29 @@ class DoSub implements Runnable {
     @Override
     public void run() {
         try {
+            // The subscriber will pause the message stream and stop receiving more messsages from the
+            // server if any one of the conditions is met.
             FlowControlSettings flowControlSettings =
                 FlowControlSettings.newBuilder()
-                    .setMaxOutstandingElementCount(10_000L)
-                    .setMaxOutstandingRequestBytes(1_000_000_000L)
+                    // 1,000 outstanding messages. Must be >0. It controls the maximum number of messages
+                    // the subscriber receives before pausing the message stream.
+                    .setMaxOutstandingElementCount(1000L)
+                    // 100 MiB. Must be >0. It controls the maximum size of messages the subscriber
+                    // receives before pausing the message stream.
+                    .setMaxOutstandingRequestBytes(100L * 1024L * 1024L)
                     .build();
 
+            // Provides an executor service for processing messages.
+            ExecutorProvider executorProvider =
+                InstantiatingExecutorProvider.newBuilder().setExecutorThreadCount(4).build();
+
+            //TODO: https://github.com/googleapis/java-pubsub/blob/52263ce63d4cbda649121e465f4bdc78bbfa8e44/samples/snippets/src/main/java/pubsub/SubscribeWithExactlyOnceConsumerWithResponseExample.java
             MessageReceiver receiver = 
                 new MessageReceiver() {
                     @Override
                     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
                         // handle incoming message, then ack/nack the received message
-                        logger.debug("\n------------\nMessage ID : " + message.getMessageId() + "\n" +
+                        logger.info("\n------------\nMessage ID : " + message.getMessageId() + "\n" +
                             "Publish time seconds: " + message.getPublishTime()
                                 .getSeconds() + "\n" +
                             "Publish time nanosecond: " + message.getPublishTime()
@@ -67,6 +80,12 @@ class DoSub implements Runnable {
                             "Attribute ID: " 
                                 + message.getAttributesOrDefault("id", "CANNOT get id") 
                                 + "\n--------------\n");
+
+                        logger.info("Custom Attributes: ");
+                        message
+                            .getAttributesMap()
+                            .forEach((key, value) -> logger.info(key + " = " + value));
+
                         consumer.ack();
                     }};
                                                    
@@ -74,17 +93,37 @@ class DoSub implements Runnable {
                 .setFlowControlSettings(flowControlSettings)
                 .setCredentialsProvider(this.credentialsProvider)
                 .setMaxAckExtensionPeriod(Duration.ofSeconds(120))
+                .setParallelPullCount(2)
+                .setExecutorProvider(executorProvider)
                 .build();
 
+            // Listen for unrecoverable failures. Rebuild a subscriber and restart subscribing
+            // when the current subscriber encounters permanent errors.
+            subscriber.addListener(
+                new Subscriber.Listener() {
+                    public void failed(Subscriber.State from, Throwable failure) {
+                        System.out.println(failure.getStackTrace());
+                        if (!executorProvider.getExecutor().isShutdown()) {
+                           run();
+                        }
+                    }
+                },
+                MoreExecutors.directExecutor());
+
             subscriber.startAsync().awaitRunning();
+            logger.info("Listening for messages on %s:", subscriptionName.toString());
+
             // Allow the subscriber to run indefinitely unless an unrecoverable error occurs
-            subscriber.awaitTerminated();
+            // subscriber.awaitTerminated();
+            subscriber.awaitTerminated(10, TimeUnit.SECONDS);
+        } catch (TimeoutException timeoutException) {
+            logger.error("TimeoutException", timeoutException);
         } catch (Exception ex) {
             logger.error("Error", ex);
         } finally {
             if (null != subscriber) {
                 // When finished with the publisher, make sure to shutdown to free up resources.
-                logger.info("Shutting down the subscriber");
+                logger.warn("Shutting down the subscriber");
                 subscriber.stopAsync();
             }
         }

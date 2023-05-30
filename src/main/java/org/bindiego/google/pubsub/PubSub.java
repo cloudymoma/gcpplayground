@@ -145,7 +145,7 @@ public class PubSub extends Thread {
         int numPubThreads = Integer.parseInt(
             config.getProperty("google.pubsub.pub.threads").toString());
         execPub = Executors.newFixedThreadPool(numPubThreads);
-
+        
         for (int i = 0; i < numPubThreads; ++i) {
             execPub.execute(
                 new DoPub(
