@@ -137,40 +137,47 @@ public class PubSub extends Thread {
             logger.info("Skip creation of publication and subscriptions");
         }
 
-        // Setup the pub threading pool
-        // pubbq = new ArrayBlockingQueue<Runnable>(128);
-        // execPub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, pubbq);
+        if (config.getProperty("google.pubsub.pub").toString().equalsIgnoreCase("on")) {
+            // Setup the pub threading pool
+            // pubbq = new ArrayBlockingQueue<Runnable>(128);
+            // execPub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, pubbq);
 
-        // Run threads
-        int numPubThreads = Integer.parseInt(
-            config.getProperty("google.pubsub.pub.threads").toString());
-        execPub = Executors.newFixedThreadPool(numPubThreads);
-        
-        for (int i = 0; i < numPubThreads; ++i) {
-            execPub.execute(
-                new DoPub(
-                    TopicName.of(projectId, topicId), 
-                    credentialsProvider));
+            // Run threads
+            int numPubThreads = Integer.parseInt(
+                config.getProperty("google.pubsub.pub.threads").toString());
+            execPub = Executors.newFixedThreadPool(numPubThreads);
+            
+            for (int i = 0; i < numPubThreads; ++i) {
+                execPub.execute(
+                    new DoPub(
+                        TopicName.of(projectId, topicId), 
+                        credentialsProvider));
+            }
         }
 
-        // Setup the sub threading pool
-        // subbq = new ArrayBlockingQueue<Runnable>(128);
-        // execSub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, subbq);
+        if (config.getProperty("google.pubsub.sub").toString().equalsIgnoreCase("on")) {
+            // Setup the sub threading pool
+            // subbq = new ArrayBlockingQueue<Runnable>(128);
+            // execSub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, subbq);
 
-        // Run threads
-        int numSubThreads = Integer.parseInt(
-            config.getProperty("google.pubsub.sub.threads").toString());
-        execSub = Executors.newFixedThreadPool(numSubThreads);
+            // Run threads
+            int numSubThreads = Integer.parseInt(
+                config.getProperty("google.pubsub.sub.threads").toString());
+            execSub = Executors.newFixedThreadPool(numSubThreads);
 
-        for (int i = 0; i < numSubThreads; ++i) {
-            execSub.execute(
-                new DoSub(
-                    ProjectSubscriptionName.of(projectId, subscriptionId),
-                    credentialsProvider));
+            for (int i = 0; i < numSubThreads; ++i) {
+                execSub.execute(
+                    new DoSub(
+                        ProjectSubscriptionName.of(projectId, subscriptionId),
+                        credentialsProvider));
+            }
         }
 
-        execPub.shutdown();
-        execSub.shutdown();
+        if (config.getProperty("google.pubsub.pub").toString().equalsIgnoreCase("on"))
+            execPub.shutdown();
+
+        if (config.getProperty("google.pubsub.sub").toString().equalsIgnoreCase("on"))
+            execSub.shutdown();
     }
 
     private static final Logger logger =

@@ -25,6 +25,8 @@ import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.PullRequest;
 import com.google.pubsub.v1.PullResponse;
 import com.google.pubsub.v1.ReceivedMessage;
+import com.google.gson.*;
+
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,13 +70,15 @@ class DoSub implements Runnable {
                 new MessageReceiver() {
                     @Override
                     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
+                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
                         // handle incoming message, then ack/nack the received message
                         logger.info("\n------------\nMessage ID : " + message.getMessageId() + "\n" +
                             "Publish time seconds: " + message.getPublishTime()
                                 .getSeconds() + "\n" +
                             "Publish time nanosecond: " + message.getPublishTime()
                                 .getNanos() + "\n" +
-                            "Data payload: " + message.getData().toStringUtf8() + "\n" +
+                            "Data payload: " + gson.toJson(JsonParser.parseString(message.getData().toStringUtf8())) + "\n" +
                             "Attribute timestamp: " 
                                 + message.getAttributesOrDefault("timestamp", "CANNOT get timestamp") + "\n" +
                             "Attribute ID: " 

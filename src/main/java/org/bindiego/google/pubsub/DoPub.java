@@ -34,8 +34,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Random; 
 import org.threeten.bp.Duration;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 class DoPub implements Runnable {
     private DoPub() {}
@@ -122,38 +127,21 @@ class DoPub implements Runnable {
             int numLoops = Integer.parseInt(
                 config.getProperty("google.pubsub.pub.threads.msgnum").toString());
 
-            Random rand = new Random();
+            // read Firebase sample Json data
+            Scanner scanner = new Scanner(new File(
+                config.getProperty("firebase.sample.data").toString()));
+            List<String> fb_samples = new ArrayList<String>();
+            while (scanner.hasNextLine()) {
+				fb_samples.add(scanner.nextLine());
+			}
+			scanner.close();
+            int modulor = fb_samples.size() - 1;
 
-            // a random dimension array
-            String[] dims = {"bindigo", 
-                "bindiego",
-                "ivy",
-                "duelaylowmow"};
-
-            /**
-             * CSV payload contents
-             * - event timestamp (milliseconds)
-             * - thread_id
-             * - thread_name
-             * - sequence_num (how many messages posted by this thread, monotonic increasing
-             * - dim1
-             * - metrics1
-             */
+            // Publish messages
             for (int i = 0; i < numLoops; ++i) {
-                // introduce a random delay in 5s, 10s and 30s for event time
-                final long[] delay = {5000L, 10000L, 30000L};
-                final long millis = (0 == rand.nextInt(2)) ? 
-                    System.currentTimeMillis() :
-                    (System.currentTimeMillis() - delay[rand.nextInt(3)]);
+                final long millis = System.currentTimeMillis();
 
-                final String message = 
-                    new StringBuilder().append(millis).append(deli)
-                        .append(threadId).append(deli)
-                        .append(threadName).append(deli)
-                        .append(i).append(deli)
-                        .append(dims[rand.nextInt(4)]).append(deli)
-                        .append(rand.nextInt(1000))
-                        .toString();
+                final String message = fb_samples.get(i % modulor);
 
                 final String msgId = UUID.randomUUID().toString();
 
@@ -199,6 +187,8 @@ class DoPub implements Runnable {
                     MoreExecutors.directExecutor());
             }
 
+        } catch (FileNotFoundException ex) {
+			logger.error("Error", ex);
         } catch (Exception ex) {
             logger.error("Error", ex);
         } finally {

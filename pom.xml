@@ -27,15 +27,7 @@
         <google.auth.bom>1.17.0</google.auth.bom>
         <google.grpc.ver>1.105.12</google.grpc.ver>
         <gcp.lib.bom>26.15.0</gcp.lib.bom>
-        <gcp.core.ver>2.9.4</gcp.core.ver>
-        <gcp.trans.ver>2.9.0</gcp.trans.ver>
-        <gcp.pubsub.ver>1.123.12</gcp.pubsub.ver>
-        <gcp.pubsublite.ver>1.9.4</gcp.pubsublite.ver>
-        <gcp.bq.ver>2.22.0</gcp.bq.ver>
-        <gcp.firestore.ver>3.7.10</gcp.firestore.ver>
-        <gcp.redis.ver>2.13.0</gcp.redis.ver>
-        <gcp.gcs.ver>2.18.0</gcp.gcs.ver>
-        <gcp.dialogflow.ver>4.16.0</gcp.dialogflow.ver>
+        <gson.ver>2.10.1</gson.ver>
 
         <cmn.config>1.10</cmn.config>
         <cmn.io>2.6</cmn.io>
@@ -431,47 +423,12 @@
         </dependency>
 
         <!-- Google stuff -->
-        <!--
         <dependency>
-            <groupId>com.google.api-client</groupId>
-            <artifactId>google-api-client</artifactId>
-            <version>${google.api.ver}</version>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.ver}</version>
         </dependency>
-        <dependency>
-            <groupId>com.google.api</groupId>
-            <artifactId>gax</artifactId>
-            <version>${google.gax.ver}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.api</groupId>
-            <artifactId>gax-grpc</artifactId>
-            <version>${google.gax.ver}</version>
-        </dependency>
-        -->
-<!--
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-netty-shaded</artifactId>
-            <version>${grpc.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-protobuf</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-stub</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
-        <dependency> 
-            <groupId>org.apache.tomcat</groupId>
-            <artifactId>annotations-api</artifactId>
-            <version>${tomcat.ann.ver}</version>
-            <scope>provided</scope>
-        </dependency>
--->
+
         <!-- threeten.org -->
         <dependency>
             <groupId>org.threeten</groupId>
