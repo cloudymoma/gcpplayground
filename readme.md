@@ -82,7 +82,7 @@ Tips:
 
 - You may skip the init after the first run, or completely turn it off if you have already created the Topic/Sub in some way
 - Turn `off` the `google.pubsub.sub` so the following Dataflow/Flink/Spark could consume the messages, unless they have their own subscriptions respectively
-- Get more complexed `firebase.sample.data` for testing. e.g. select/export random/obfuscated data from existing events table from BigQuery
+- Get more complexed [`firebase.sample.data`](https://github.com/cloudymoma/gcpplayground/blob/gcp/data/raycom_events_sample.json) for testing. e.g. select/export random/obfuscated data from existing events table from BigQuery
 
 ### Pubsublite
 
