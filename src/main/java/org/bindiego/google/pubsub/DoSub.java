@@ -66,8 +66,10 @@ class DoSub implements Runnable {
                     .build();
 
             // Provides an executor service for processing messages.
+            /*
             ExecutorProvider executorProvider =
                 InstantiatingExecutorProvider.newBuilder().setExecutorThreadCount(4).build();
+                */
 
             //TODO: https://github.com/googleapis/java-pubsub/blob/52263ce63d4cbda649121e465f4bdc78bbfa8e44/samples/snippets/src/main/java/pubsub/SubscribeWithExactlyOnceConsumerWithResponseExample.java
             MessageReceiver receiver = 
@@ -112,12 +114,13 @@ class DoSub implements Runnable {
                 .setFlowControlSettings(flowControlSettings)
                 .setCredentialsProvider(this.credentialsProvider)
                 .setMaxAckExtensionPeriod(Duration.ofSeconds(120))
-                .setParallelPullCount(2)
-                .setExecutorProvider(executorProvider)
+                //.setParallelPullCount(2)
+                //.setExecutorProvider(executorProvider)
                 .build();
 
             // Listen for unrecoverable failures. Rebuild a subscriber and restart subscribing
             // when the current subscriber encounters permanent errors.
+            /*
             subscriber.addListener(
                 new Subscriber.Listener() {
                     public void failed(Subscriber.State from, Throwable failure) {
@@ -128,13 +131,14 @@ class DoSub implements Runnable {
                     }
                 },
                 MoreExecutors.directExecutor());
+                */
 
             subscriber.startAsync().awaitRunning();
             logger.info("Listening for messages on %s:", subscriptionName.toString());
 
             // Allow the subscriber to run indefinitely unless an unrecoverable error occurs
             // subscriber.awaitTerminated();
-            subscriber.awaitTerminated(10, TimeUnit.SECONDS);
+            subscriber.awaitTerminated(30, TimeUnit.SECONDS);
         } catch (TimeoutException timeoutException) {
             logger.error("TimeoutException", timeoutException);
         } catch (Exception ex) {

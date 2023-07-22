@@ -189,27 +189,26 @@ class DoPub implements Runnable {
                 ApiFutures.addCallback(
                     future,
                     new ApiFutureCallback<String>() {
-
-                    @Override
-                    public void onFailure(Throwable throwable) {
-                        if (throwable instanceof ApiException) {
-                            ApiException apiException = ((ApiException) throwable);
-                            // details on the API exception
-                            logger.error(apiException.getStatusCode().getCode());
-                            logger.error(apiException.isRetryable());
-                        }
-                        logger.error("Error publishing message : " + message);
-                    }
-
-                    @Override
-                    public void onSuccess(String messageId) {
-                        if (config.getProperty("google.pubsub.print.msg").toString().equalsIgnoreCase("on")) {
-                            // Once published, returns server-assigned message ids (unique within the topic)
-                            logger.info("Published message ID: " + messageId);
+                        @Override
+                        public void onFailure(Throwable throwable) {
+                            if (throwable instanceof ApiException) {
+                                ApiException apiException = ((ApiException) throwable);
+                                // details on the API exception
+                                logger.error(apiException.getStatusCode().getCode());
+                                logger.error(apiException.isRetryable());
+                            }
+                            logger.error("Error publishing message : " + message);
                         }
 
-                        dingoStats.add(System.currentTimeMillis() - millis);
-                    }
+                        @Override
+                        public void onSuccess(String messageId) {
+                            if (config.getProperty("google.pubsub.print.msg").toString().equalsIgnoreCase("on")) {
+                                // Once published, returns server-assigned message ids (unique within the topic)
+                                logger.info("Published message ID: " + messageId);
+                            }
+
+                            dingoStats.add(System.currentTimeMillis() - millis);
+                        }
                     },
                     MoreExecutors.directExecutor());
             }
