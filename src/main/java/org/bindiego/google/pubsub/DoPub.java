@@ -4,6 +4,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bindiego.util.Config;
+import org.bindiego.util.DingoStats;
 
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
@@ -28,6 +29,10 @@ import com.google.protobuf.Timestamp.Builder;
 import com.google.pubsub.v1.TopicName;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.io.FileInputStream;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -35,6 +40,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.Random; 
 import org.threeten.bp.Duration;
@@ -137,11 +143,28 @@ class DoPub implements Runnable {
 			scanner.close();
             int modulor = fb_samples.size() - 1;
 
+            // check if record performance metrics
+            boolean perfMetrics = false;
+            if (config.getProperty("google.pubsub.perf").toString().equalsIgnoreCase("on"))
+                perfMetrics = true;
+
             // Publish messages
             for (int i = 0; i < numLoops; ++i) {
                 final long millis = System.currentTimeMillis();
 
-                final String message = fb_samples.get(i % modulor);
+                String msg = fb_samples.get(i % modulor);
+
+                // REVISIT: pretty printing is not the optimal way to transfer data, only demo & test
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                Map<String, Object> map = gson.fromJson(msg, Map.class);
+
+                if (perfMetrics) {
+                    // Add timestamp field
+                    final Instant timestamp = Instant.now();
+                    map.put("perf_ts", timestamp.toEpochMilli());
+                }
+
+                final String message = gson.toJson(map);
 
                 final String msgId = UUID.randomUUID().toString();
 
@@ -180,8 +203,12 @@ class DoPub implements Runnable {
 
                     @Override
                     public void onSuccess(String messageId) {
-                        // Once published, returns server-assigned message ids (unique within the topic)
-                        logger.info("Published message ID: " + messageId);
+                        if (config.getProperty("google.pubsub.print.msg").toString().equalsIgnoreCase("on")) {
+                            // Once published, returns server-assigned message ids (unique within the topic)
+                            logger.info("Published message ID: " + messageId);
+                        }
+
+                        dingoStats.add(System.currentTimeMillis() - millis);
                     }
                     },
                     MoreExecutors.directExecutor());
@@ -206,10 +233,17 @@ class DoPub implements Runnable {
         }
     }
 
+    public DoPub setDingoStats(DingoStats dingoStats) {
+        this.dingoStats = dingoStats;
+        return this;
+    }
+
     private static final Logger logger =
         LogManager.getFormatterLogger(DoPub.class.getName());
 
     private PropertiesConfiguration config;
     
     private Publisher publisher;
+
+    private DingoStats dingoStats;
 }

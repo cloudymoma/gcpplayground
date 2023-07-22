@@ -5,6 +5,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bindiego.util.Config;
+import org.bindiego.util.DingoStats;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -137,6 +138,9 @@ public class PubSub extends Thread {
             logger.info("Skip creation of publication and subscriptions");
         }
 
+        pubStats = new DingoStats("Publisher Metrics");
+        subStats = new DingoStats("Subscriber Metrics");
+
         if (config.getProperty("google.pubsub.pub").toString().equalsIgnoreCase("on")) {
             // Setup the pub threading pool
             // pubbq = new ArrayBlockingQueue<Runnable>(128);
@@ -151,7 +155,8 @@ public class PubSub extends Thread {
                 execPub.execute(
                     new DoPub(
                         TopicName.of(projectId, topicId), 
-                        credentialsProvider));
+                        credentialsProvider)
+                    .setDingoStats(pubStats));
             }
         }
 
@@ -169,7 +174,8 @@ public class PubSub extends Thread {
                 execSub.execute(
                     new DoSub(
                         ProjectSubscriptionName.of(projectId, subscriptionId),
-                        credentialsProvider));
+                        credentialsProvider)
+                    .setDingoStats(subStats));
             }
         }
 
@@ -178,6 +184,16 @@ public class PubSub extends Thread {
 
         if (config.getProperty("google.pubsub.sub").toString().equalsIgnoreCase("on"))
             execSub.shutdown();
+
+        try {
+            execPub.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            pubStats.show();
+
+            execSub.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            subStats.show();
+        } catch (InterruptedException ex) {
+            logger.error("Error", ex);
+        }
     }
 
     private static final Logger logger =
@@ -194,4 +210,7 @@ public class PubSub extends Thread {
     private String projectId;
     private String topicId;
     private String subscriptionId;
+
+    private DingoStats pubStats;
+    private DingoStats subStats;
 }

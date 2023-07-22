@@ -4,6 +4,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bindiego.util.Config;
+import org.bindiego.util.DingoStats;
 
 import com.google.api.core.ApiFuture;
 import com.google.api.gax.batching.FlowControlSettings;
@@ -25,7 +26,10 @@ import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.PullRequest;
 import com.google.pubsub.v1.PullResponse;
 import com.google.pubsub.v1.ReceivedMessage;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonObject;
 
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -71,24 +75,35 @@ class DoSub implements Runnable {
                     @Override
                     public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
                         Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                        JsonObject jsonObject = gson.fromJson(
+                            message.getData().toStringUtf8(), JsonObject.class);
 
-                        // handle incoming message, then ack/nack the received message
-                        logger.info("\n------------\nMessage ID : " + message.getMessageId() + "\n" +
-                            "Publish time seconds: " + message.getPublishTime()
-                                .getSeconds() + "\n" +
-                            "Publish time nanosecond: " + message.getPublishTime()
-                                .getNanos() + "\n" +
-                            "Data payload: " + gson.toJson(JsonParser.parseString(message.getData().toStringUtf8())) + "\n" +
-                            "Attribute timestamp: " 
-                                + message.getAttributesOrDefault("timestamp", "CANNOT get timestamp") + "\n" +
-                            "Attribute ID: " 
-                                + message.getAttributesOrDefault("id", "CANNOT get id") 
-                                + "\n--------------\n");
+                        if (config.getProperty("google.pubsub.perf").toString().equalsIgnoreCase("on")) {
+                            final long subDelayMs = System.currentTimeMillis() -
+                                jsonObject.get("perf_ts").getAsLong();
 
-                        logger.info("Custom Attributes: ");
-                        message
-                            .getAttributesMap()
-                            .forEach((key, value) -> logger.info(key + " = " + value));
+                            dingoStats.add(subDelayMs); 
+                        }
+
+                        if (config.getProperty("google.pubsub.print.msg").toString().equalsIgnoreCase("on")) {
+                            // handle incoming message, then ack/nack the received message
+                            logger.info("\n------------\nMessage ID : " + message.getMessageId() + "\n" +
+                                "Publish time seconds: " + message.getPublishTime()
+                                    .getSeconds() + "\n" +
+                                "Publish time nanosecond: " + message.getPublishTime()
+                                    .getNanos() + "\n" +
+                                "Data payload: " + gson.toJson(JsonParser.parseString(message.getData().toStringUtf8())) + "\n" +
+                                "Attribute timestamp: " 
+                                    + message.getAttributesOrDefault("timestamp", "CANNOT get timestamp") + "\n" +
+                                "Attribute ID: " 
+                                    + message.getAttributesOrDefault("id", "CANNOT get id") 
+                                    + "\n--------------\n");
+
+                            logger.info("Custom Attributes: ");
+                            message
+                                .getAttributesMap()
+                                .forEach((key, value) -> logger.info(key + " = " + value));
+                        }
 
                         consumer.ack();
                     }};
@@ -133,6 +148,11 @@ class DoSub implements Runnable {
         }
     }
 
+    public DoSub setDingoStats(DingoStats dingoStats) {
+        this.dingoStats = dingoStats;
+        return this;
+    }
+
     private static final Logger logger =
         LogManager.getFormatterLogger(DoSub.class.getName());
 
@@ -141,4 +161,6 @@ class DoSub implements Runnable {
     private Subscriber subscriber;
     private ProjectSubscriptionName subscriptionName;
     private CredentialsProvider credentialsProvider;
+
+    private DingoStats dingoStats;
 }
