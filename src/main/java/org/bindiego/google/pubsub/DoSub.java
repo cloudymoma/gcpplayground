@@ -73,42 +73,42 @@ class DoSub implements Runnable {
 
             //TODO: https://github.com/googleapis/java-pubsub/blob/52263ce63d4cbda649121e465f4bdc78bbfa8e44/samples/snippets/src/main/java/pubsub/SubscribeWithExactlyOnceConsumerWithResponseExample.java
             MessageReceiver receiver = 
-                new MessageReceiver() {
-                    @Override
-                    public void receiveMessage(PubsubMessage message, AckReplyConsumer consumer) {
-                        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                        JsonObject jsonObject = gson.fromJson(
-                            message.getData().toStringUtf8(), JsonObject.class);
+                (PubsubMessage message, AckReplyConsumer consumer) -> {
+                    final String jsonStr = message.getData().toStringUtf8();
 
-                        if (config.getProperty("google.pubsub.perf").toString().equalsIgnoreCase("on")) {
-                            final long subDelayMs = System.currentTimeMillis() -
-                                jsonObject.get("perf_ts").getAsLong();
+                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                    JsonObject jsonObject = gson.fromJson(
+                        jsonStr, JsonObject.class);
 
-                            dingoStats.add(subDelayMs); 
-                        }
+                    if (config.getProperty("google.pubsub.perf").toString().equalsIgnoreCase("on")) {
+                        final long subDelayMs = System.currentTimeMillis() -
+                            jsonObject.get("perf_ts").getAsLong();
 
-                        if (config.getProperty("google.pubsub.print.msg").toString().equalsIgnoreCase("on")) {
-                            // handle incoming message, then ack/nack the received message
-                            logger.info("\n------------\nMessage ID : " + message.getMessageId() + "\n" +
-                                "Publish time seconds: " + message.getPublishTime()
-                                    .getSeconds() + "\n" +
-                                "Publish time nanosecond: " + message.getPublishTime()
-                                    .getNanos() + "\n" +
-                                "Data payload: " + gson.toJson(JsonParser.parseString(message.getData().toStringUtf8())) + "\n" +
-                                "Attribute timestamp: " 
-                                    + message.getAttributesOrDefault("timestamp", "CANNOT get timestamp") + "\n" +
-                                "Attribute ID: " 
-                                    + message.getAttributesOrDefault("id", "CANNOT get id") 
-                                    + "\n--------------\n");
+                        dingoStats.add(subDelayMs); 
+                    }
 
-                            logger.info("Custom Attributes: ");
-                            message
-                                .getAttributesMap()
-                                .forEach((key, value) -> logger.info(key + " = " + value));
-                        }
+                    if (config.getProperty("google.pubsub.print.msg").toString().equalsIgnoreCase("on")) {
+                        // handle incoming message, then ack/nack the received message
+                        logger.info("\n------------\nMessage ID : " + message.getMessageId() + "\n" +
+                            "Publish time seconds: " + message.getPublishTime()
+                                .getSeconds() + "\n" +
+                            "Publish time nanosecond: " + message.getPublishTime()
+                                .getNanos() + "\n" +
+                            "Data payload: " + gson.toJson(JsonParser.parseString(jsonStr)) + "\n" +
+                            "Attribute timestamp: " 
+                                + message.getAttributesOrDefault("timestamp", "CANNOT get timestamp") + "\n" +
+                            "Attribute ID: " 
+                                + message.getAttributesOrDefault("id", "CANNOT get id") 
+                                + "\n--------------\n");
 
-                        consumer.ack();
-                    }};
+                        logger.info("Custom Attributes: ");
+                        message
+                            .getAttributesMap()
+                            .forEach((key, value) -> logger.info(key + " = " + value));
+                    }
+
+                    consumer.ack();
+                };
                                                    
             subscriber = Subscriber.newBuilder(subscriptionName, receiver)
                 .setFlowControlSettings(flowControlSettings)
