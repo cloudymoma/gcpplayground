@@ -9,9 +9,9 @@
     <url>http://maven.apache.org</url>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <log4j.version>2.17.1</log4j.version>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.javadoc.protobufBaseURL>https://googleapis.dev/java/google-api-grpc/latest</project.javadoc.protobufBaseURL>
@@ -21,12 +21,10 @@
         <grpc.bom.version>1.55.1</grpc.bom.version>
         <protobuf.bom.version>3.23.2</protobuf.bom.version>
         <tomcat.ann.ver>6.0.53</tomcat.ann.ver>
-        
+
         <google.api.ver>2.2.0</google.api.ver>
-        <google.gax.ver>2.28.1</google.gax.ver>
-        <google.auth.bom>1.17.0</google.auth.bom>
-        <google.grpc.ver>1.105.12</google.grpc.ver>
-        <gcp.lib.bom>26.29.0</gcp.lib.bom>
+        <google.auth.bom>1.23.0</google.auth.bom>
+        <gcp.lib.bom>26.34.0</gcp.lib.bom>
         <gson.ver>2.10.1</gson.ver>
 
         <cmn.config>1.10</cmn.config>
@@ -59,23 +57,6 @@
     </distributionManagement>
 
     <repositories>
-        <!--
-        <repository>
-            <id>spring-maven-release</id>
-            <name>Spring Maven Release Repository</name>
-            <url>http://maven.springframework.org/release</url>
-        </repository>
-        <repository>
-            <id>spring-maven-milestone</id>
-            <name>Spring Maven Milestone Repository</name>
-            <url>http://maven.springframework.org/milestone</url>
-        </repository>
-        <repository>
-            <id>spring-roo-repository</id>
-            <name>Spring Roo Repository</name>
-            <url>http://spring-roo-repository.springsource.org/release</url>
-        </repository>
-        -->
         <!-- Maven central -->
         <repository>
             <id>central</id>
@@ -385,18 +366,6 @@
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-pubsub</artifactId>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>com.google.api.grpc</groupId>
-            <artifactId>proto-google-cloud-pubsub-v1</artifactId>
-            <version>${google.grpc.ver}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.api.grpc</groupId>
-            <artifactId>grpc-google-cloud-pubsub-v1</artifactId>
-            <version>${google.grpc.ver}</version>
-        </dependency>
-        -->
 
         <!-- google cloud pubsub lite client -->
         <dependency>
