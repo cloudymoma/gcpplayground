@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -29,12 +30,15 @@
 
         <cmn.config>1.10</cmn.config>
         <cmn.io>2.7</cmn.io>
-        <cmn.cli>1.4</cmn.cli>
+        <cmn.cli>1.9.0</cmn.cli>
         <cmn.math>3.6.1</cmn.math>
         <cmn.compress>1.21</cmn.compress>
         <cmn.fileup>1.5</cmn.fileup>
         <cmn.beanutils>1.9.4</cmn.beanutils>
         <jasypt.version>1.9.3</jasypt.version>
+
+        <kafka.ver>3.8.0</kafka.ver>
+        <google.kafka.ver>1.0.1</google.kafka.ver>
 
         <threeten.ver>1.6.5</threeten.ver>
         <google.flogger.ver>0.7.4</google.flogger.ver>
@@ -405,7 +409,7 @@
             <version>${threeten.ver}</version>
         </dependency>
 
-        <!-- Google flogger system backend-->
+        <!-- Google flogger system backend -->
         <dependency>
             <groupId>com.google.flogger</groupId>
             <artifactId>flogger-system-backend</artifactId>
@@ -417,6 +421,18 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-dialogflow</artifactId>
+        </dependency>
+
+        <!-- Google Managed Kafka & OSS Kafka -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${kafka.ver}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.cloud.hosted.kafka</groupId>
+            <artifactId>managed-kafka-auth-login-handler</artifactId>
+            <version>${google.kafka.ver}</version>
         </dependency>
     </dependencies>
 </project>

@@ -14,6 +14,7 @@ import org.bindiego.google.bq.CloudBigQuery;
 import org.bindiego.google.pubsub.PubSub;
 import org.bindiego.google.pubsub.lite.PubSubLite;
 import org.bindiego.google.gcs.CloudStorage;
+import org.bindiego.google.kafka.DingoKafka;
 
 /**
  * ServicePal image identification application
@@ -60,6 +61,9 @@ public class App
 
         if (config.getProperty("google.gcs").toString().equalsIgnoreCase("on"))
             new CloudStorage().start();
+
+        if (config.getProperty("google.kafka").toString().equalsIgnoreCase("on"))
+            new DingoKafka().start();
 
         logger.info(config.getProperty("app.name").toString() + " Stopped");
     }
