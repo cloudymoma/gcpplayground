@@ -186,11 +186,15 @@ public class PubSub extends Thread {
             execSub.shutdown();
 
         try {
-            execPub.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            pubStats.show();
+            if (config.getProperty("google.pubsub.pub").toString().equalsIgnoreCase("on")) {
+                execPub.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                pubStats.show();
+            }
 
-            execSub.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            subStats.show();
+            if (config.getProperty("google.pubsub.sub").toString().equalsIgnoreCase("on")) {
+                execSub.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                subStats.show();
+            }
         } catch (InterruptedException ex) {
             logger.error("Error", ex);
         }
