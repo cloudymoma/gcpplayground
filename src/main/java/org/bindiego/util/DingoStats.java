@@ -4,68 +4,69 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.Math;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.math.BigDecimal;
 
-import org.bindiego.Settings;
-
-public class DingoStats implements Cloneable {
+public class DingoStats {
 
     private static final Logger logger =
         LogManager.getFormatterLogger(DingoStats.class.getName());
 
-    public DingoStats clone() throws CloneNotSupportedException {
-        throw new CloneNotSupportedException();
-    }
-
     private String statsName;
 
-    private AtomicInteger counter;
+    private long counter;
 
-    private volatile double min;
-    private volatile double max;
+    private double min;
+    private double max;
 
     // only store running mean, sum of squared deviations (m2) and count
     // Incrementally update mean and m2 with each new number
     // m2 tracks the sum of squared deviations from the true mean
     // This avoids accumulating the deviations themselves
     // Standard deviation can be calculated at any point as sqrt(m2 / (n - 1))
-    private volatile double mean;
-    private volatile double stdDev;
-    private volatile double m2;
-
+    private double mean;
+    private double m2;
 
     public DingoStats(String statsName) {
         this.statsName = statsName;
 
-        counter = new AtomicInteger(0);
+        counter = 0L;
         min = Double.MAX_VALUE;
         max = Double.MIN_VALUE;
         mean = 0.0d;
-        stdDev = 0.0d;
         m2 = 0.0d;
     }
 
     // Streaming calculation for unbounded incoming numbers without holding
     // all numbers or running sum for potential memory leaks
     public synchronized void add(double x) {
-        int n = counter.incrementAndGet();
-
+        counter++;
+        long n = counter;
         min = Math.min(min, x);
         max = Math.max(max, x);
 
         double delta = x - mean;
         mean += delta / n;
-        m2 += delta * (x - mean - delta / n);
-        // stdDev = Math.sqrt(m2 / (n - 1));
+        double delta2 = x - mean;
+        m2 += delta * delta2;
     }
 
-    public void show() {
+    public synchronized void show() {
         logger.info("============" + statsName + " stats =============");
-        logger.info("Count: " + counter);
+        long n = counter;
+        logger.info("Count: " + n);
+        if (n == 0) {
+            logger.info("Min: N/A");
+            logger.info("Max: N/A");
+            logger.info("Average: N/A");
+            logger.info("Standard Deviation: N/A");
+            return;
+        }
         logger.info("Min: " + min);
         logger.info("Max: " + max);
         logger.info("Average: " + mean);
-        logger.info("Standard Deviation: " + Math.sqrt(m2 / (counter.get() - 1)));
+        if (n > 1) {
+            logger.info("Standard Deviation: " + Math.sqrt(m2 / (n - 1)));
+        } else {
+            logger.info("Standard Deviation: 0.0");
+        }
     }
 }
