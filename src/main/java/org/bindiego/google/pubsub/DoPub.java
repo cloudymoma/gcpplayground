@@ -38,6 +38,7 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.List;
 import java.util.Map;
@@ -129,30 +130,35 @@ class DoPub implements Runnable {
             final String threadName = currentThread.getName();
             final long threadId = currentThread.getId();
 
-            // loop control, number of messages to be sent
-            int numLoops = Integer.parseInt(
-                config.getProperty("google.pubsub.pub.threads.msgnum").toString());
-
-            // read Firebase sample Json data
-            Scanner scanner = new Scanner(new File(
-                config.getProperty("firebase.sample.data").toString()));
-            List<String> fb_samples = new ArrayList<String>();
-            while (scanner.hasNextLine()) {
-				fb_samples.add(scanner.nextLine());
-			}
-			scanner.close();
-            int modulor = fb_samples.size() - 1;
-
             // check if record performance metrics
             boolean perfMetrics = false;
             if (config.getProperty("google.pubsub.perf").toString().equalsIgnoreCase("on"))
                 perfMetrics = true;
 
-            // Publish messages
-            for (int i = 0; i < numLoops; ++i) {
-                final long millis = System.currentTimeMillis();
+            long backoff = 100L; // 100 milliseconds
+            final long maxBackoff = 60000L; // 1 minute
 
-                String msg = fb_samples.get(i % modulor);
+            // Publish messages
+            while (!Thread.currentThread().isInterrupted()) {
+                String msg = null;
+                while (true) {
+                    msg = sharedQueue.poll();
+                    if (msg != null) {
+                        backoff = 100L; // reset backoff
+                        break;
+                    }
+                    logger.warn("Shared queue is empty, waiting for " + backoff + "ms before retrying");
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(backoff);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        logger.error("Interrupted while waiting for message from queue", e);
+                        return; // Exit run method
+                    }
+                    backoff = Math.min(backoff * 2, maxBackoff); // exponential backoff
+                }
+
+                final long millis = System.currentTimeMillis();
 
                 // REVISIT: pretty printing is not the optimal way to transfer data, only demo & test
                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -213,8 +219,6 @@ class DoPub implements Runnable {
                     MoreExecutors.directExecutor());
             }
 
-        } catch (FileNotFoundException ex) {
-			logger.error("Error", ex);
         } catch (Exception ex) {
             logger.error("Error", ex);
         } finally {
@@ -237,6 +241,11 @@ class DoPub implements Runnable {
         return this;
     }
 
+    public DoPub setSharedQueue(BlockingQueue<String> sharedQueue) {
+        this.sharedQueue = sharedQueue;
+        return this;
+    }
+
     private static final Logger logger =
         LogManager.getFormatterLogger(DoPub.class.getName());
 
@@ -245,4 +254,6 @@ class DoPub implements Runnable {
     private Publisher publisher;
 
     private DingoStats dingoStats;
+
+    private BlockingQueue<String> sharedQueue;
 }

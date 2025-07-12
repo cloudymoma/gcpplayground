@@ -18,6 +18,8 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import io.grpc.Status.Code;
 
@@ -141,7 +143,39 @@ public class PubSub extends Thread {
         pubStats = new DingoStats("Publisher Metrics");
         subStats = new DingoStats("Subscriber Metrics");
 
-        if (config.getProperty("google.pubsub.pub").toString().equalsIgnoreCase("on")) {
+        final boolean isPubOn = config.getProperty("google.pubsub.pub").toString().equalsIgnoreCase("on");
+        final boolean isSubOn = config.getProperty("google.pubsub.sub").toString().equalsIgnoreCase("on");
+
+        // Start the data generator threads
+        final int QUEUE_CAPACITY = 100_000;
+        final int NUM_PRODUCER_THREADS = 2;
+
+        BlockingQueue<String> sharedQueue = new LinkedBlockingQueue<>(QUEUE_CAPACITY);
+        ExecutorService producerExecutor = Executors.newFixedThreadPool(NUM_PRODUCER_THREADS);
+        logger.info("🚀 Spawning %d producer threads to fill the queue.%n", NUM_PRODUCER_THREADS);
+
+        for (int i = 0; i < NUM_PRODUCER_THREADS; i++) {
+            producerExecutor.submit(new BindiegoFirebaseDataGenRunnable(sharedQueue));
+        }
+
+        // Setup and start the stats reporting thread
+        ScheduledExecutorService statsExecutor = null;
+        if (isPubOn || isSubOn) {
+            statsExecutor = Executors.newSingleThreadScheduledExecutor();
+            statsExecutor.scheduleAtFixedRate(() -> {
+                if (isPubOn) {
+                    pubStats.show();
+                }
+                if (isSubOn) {
+                    subStats.show();
+                }
+
+                // print the size of shareQueue
+                logger.info("Data pool size: %d", sharedQueue.size());
+            }, 3, 3, TimeUnit.SECONDS);
+        }
+
+        if (isPubOn) {
             // Setup the pub threading pool
             // pubbq = new ArrayBlockingQueue<Runnable>(128);
             // execPub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, pubbq);
@@ -156,11 +190,12 @@ public class PubSub extends Thread {
                     new DoPub(
                         TopicName.of(projectId, topicId), 
                         credentialsProvider)
-                    .setDingoStats(pubStats));
+                    .setDingoStats(pubStats)
+                    .setSharedQueue(sharedQueue));
             }
         }
 
-        if (config.getProperty("google.pubsub.sub").toString().equalsIgnoreCase("on")) {
+        if (isSubOn) {
             // Setup the sub threading pool
             // subbq = new ArrayBlockingQueue<Runnable>(128);
             // execSub = new ThreadPoolExecutor(2, 128, 60, TimeUnit.SECONDS, subbq);
@@ -179,24 +214,50 @@ public class PubSub extends Thread {
             }
         }
 
-        if (config.getProperty("google.pubsub.pub").toString().equalsIgnoreCase("on"))
+        producerExecutor.shutdown();
+        if (isPubOn) {
             execPub.shutdown();
+        }
 
-        if (config.getProperty("google.pubsub.sub").toString().equalsIgnoreCase("on"))
+        if (isSubOn) {
             execSub.shutdown();
+        }
 
         try {
-            if (config.getProperty("google.pubsub.pub").toString().equalsIgnoreCase("on")) {
+            if (isPubOn) {
                 execPub.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-                pubStats.show();
             }
 
-            if (config.getProperty("google.pubsub.sub").toString().equalsIgnoreCase("on")) {
+            if (isSubOn) {
                 execSub.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-                subStats.show();
             }
         } catch (InterruptedException ex) {
-            logger.error("Error", ex);
+            logger.error("Interrupted while waiting for termination, shutting down executors now.", ex);
+
+            producerExecutor.shutdownNow();
+            if (statsExecutor != null) {
+                statsExecutor.shutdownNow();
+            }
+            if (isPubOn) {
+                logger.info("Shutting down publisher executor service.");
+                execPub.shutdownNow();
+            }
+            if (isSubOn) {
+                logger.info("Shutting down subscriber executor service.");
+                execSub.shutdownNow();
+            }
+            Thread.currentThread().interrupt();
+        } finally {
+            if (statsExecutor != null) {
+                statsExecutor.shutdown();
+            }
+            logger.info("Final Stats:");
+            if (isPubOn) {
+                pubStats.show();
+            }
+            if (isSubOn) {
+                subStats.show();
+            }
         }
     }
 

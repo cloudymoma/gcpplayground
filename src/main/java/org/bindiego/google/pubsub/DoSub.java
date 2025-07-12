@@ -136,18 +136,23 @@ class DoSub implements Runnable {
             subscriber.startAsync().awaitRunning();
             logger.info("Listening for messages on %s:", subscriptionName.toString());
 
-            // Allow the subscriber to run indefinitely unless an unrecoverable error occurs
-            // subscriber.awaitTerminated();
-            subscriber.awaitTerminated(30, TimeUnit.SECONDS);
-        } catch (TimeoutException timeoutException) {
-            logger.error("TimeoutException", timeoutException);
+            // The subscriber runs in background threads. This thread can now block until it is
+            // interrupted at shutdown.
+            Object lock = new Object();
+            synchronized (lock) {
+                lock.wait();
+            }
+        } catch (InterruptedException e) {
+            // Interruption is the signal to shut down.
+            logger.info("Subscriber thread interrupted, initiating shutdown.");
+            Thread.currentThread().interrupt();
         } catch (Exception ex) {
             logger.error("Error", ex);
         } finally {
             if (null != subscriber) {
                 // When finished with the publisher, make sure to shutdown to free up resources.
                 logger.warn("Shutting down the subscriber");
-                subscriber.stopAsync();
+                subscriber.stopAsync().awaitTerminated();
             }
         }
     }

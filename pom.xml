@@ -36,6 +36,7 @@
         <cmn.fileup>1.5</cmn.fileup>
         <cmn.beanutils>1.9.4</cmn.beanutils>
         <jasypt.version>1.9.3</jasypt.version>
+        <json.ver>20250517</json.ver>
 
         <kafka.ver>3.8.0</kafka.ver>
         <google.kafka.ver>1.0.1</google.kafka.ver>
@@ -433,6 +434,13 @@
             <groupId>com.google.cloud.hosted.kafka</groupId>
             <artifactId>managed-kafka-auth-login-handler</artifactId>
             <version>${google.kafka.ver}</version>
+        </dependency>
+
+        <!-- org.json -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>${json.ver}</version>
         </dependency>
     </dependencies>
 </project>
