@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bindiego.util.Config;
 import org.bindiego.util.DingoStats;
+import org.bindiego.util.GlobalTimer;
 
 import com.google.api.core.ApiFuture;
 import com.google.api.gax.batching.FlowControlSettings;
@@ -112,7 +113,8 @@ class DoSub implements Runnable {
                         dingoStats.add(subDelayMs); 
                     }
 
-                    if (config.getProperty("google.pubsub.print.msg").toString().equalsIgnoreCase("on")) {
+                    if (config.getProperty("google.pubsub.print.msg").toString().equalsIgnoreCase("on") 
+                            && GlobalTimer.getInstance().isSwitchOnAndFlip()) {
                         // handle incoming message, then ack/nack the received message
                         logger.info("\n------------\nMessage ID : " + message.getMessageId() + "\n" +
                             "Publish time seconds: " + message.getPublishTime()

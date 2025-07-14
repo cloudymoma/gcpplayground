@@ -4,6 +4,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 
 //import org.bindiego.servicepal.FaceRecognition;
 import org.bindiego.util.Config;
+import org.bindiego.util.GlobalTimer;
 
 import org.bindiego.google.translate.CloudTranslate;
 import org.bindiego.google.bq.CloudBigQuery;
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ServicePal image identification application
@@ -33,6 +35,9 @@ public class App
         final List<Thread> services = new ArrayList<>();
 
         config = Config.getConfig();
+
+        GlobalTimer.init(5, TimeUnit.SECONDS);
+        GlobalTimer.getInstance().start();
 
         logger.info(config.getProperty("app.name").toString() + " started");
 
