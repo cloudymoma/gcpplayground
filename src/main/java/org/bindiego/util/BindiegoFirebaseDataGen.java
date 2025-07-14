@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.LongSerializationPolicy;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -42,6 +43,7 @@ public class BindiegoFirebaseDataGen {
 
     public BindiegoFirebaseDataGen() {
         GsonBuilder gsonBuilder = new GsonBuilder();
+        
         gsonBuilder.registerTypeAdapter(Double.class, new JsonSerializer<Double>() {
             @Override
             public JsonElement serialize(Double src, Type typeOfSrc, JsonSerializationContext context) {
@@ -52,6 +54,23 @@ public class BindiegoFirebaseDataGen {
                 }
             }
         });
+/*
+        gsonBuilder.registerTypeAdapter(Long.class, new JsonSerializer<Long>() {
+            @Override
+            public JsonElement serialize(Long src, Type typeOfSrc, JsonSerializationContext context) {
+                return new JsonPrimitive(src);
+            }
+        });
+
+        gsonBuilder.registerTypeAdapter(Integer.class, new JsonSerializer<Integer>() {
+            @Override
+            public JsonElement serialize(Integer src, Type typeOfSrc, JsonSerializationContext context) {
+                return new JsonPrimitive(src);
+            }
+        });
+*/  
+        gsonBuilder.setLongSerializationPolicy(LongSerializationPolicy.STRING);
+        
         this.gson = gsonBuilder.create();
     }
 
@@ -67,7 +86,7 @@ public class BindiegoFirebaseDataGen {
         String eventName = pickRandom(EVENT_NAMES);
 
         record.addProperty("event_date", eventDate.format(DATE_FORMATTER));
-        record.addProperty("event_timestamp", eventTimestamp);
+        record.addProperty("event_timestamp", String.valueOf(eventTimestamp));
         record.add("event_ts", JsonNull.INSTANCE); // Often derived during ETL, can be set to null.
         record.addProperty("event_name", eventName);
 
@@ -104,10 +123,10 @@ public class BindiegoFirebaseDataGen {
         }
 
         // Add other nullable fields with random or fixed values
-        record.addProperty("event_previous_timestamp", eventTimestamp - random.nextInt(5_000_000));
+        record.addProperty("event_previous_timestamp", String.valueOf(eventTimestamp - random.nextInt(5_000_000)));
         record.add("event_value_in_usd", JsonNull.INSTANCE);
-        record.addProperty("event_bundle_sequence_id", random.nextInt(10000));
-        record.addProperty("user_first_touch_timestamp", eventTimestamp - random.nextInt(100_000_000));
+        record.addProperty("event_bundle_sequence_id", String.valueOf(random.nextInt(10000)));
+        record.addProperty("user_first_touch_timestamp", String.valueOf(eventTimestamp - random.nextInt(100_000_000)));
         JsonObject privacyInfo = new JsonObject();
         privacyInfo.addProperty("analytics_storage", "Yes");
         privacyInfo.addProperty("ads_storage", "Yes");
@@ -178,10 +197,12 @@ public class BindiegoFirebaseDataGen {
     private JsonObject createParam(String key, String valueType, Object value) {
         JsonObject param = new JsonObject();
         JsonObject valueObject = new JsonObject();
-        if (value instanceof String) {
-            valueObject.addProperty(valueType, (String) value);
-        } else if (value instanceof Number) {
-            valueObject.addProperty(valueType, (Number) value);
+        if (value instanceof Double) {
+            valueObject.addProperty(valueType, new BigDecimal((Double) value).toPlainString());
+        } else if (value instanceof Float) {
+            valueObject.addProperty(valueType, new BigDecimal((Float) value).toPlainString());
+        } else {
+            valueObject.addProperty(valueType, String.valueOf(value));
         }
         param.addProperty("key", key);
         param.add("value", valueObject);
@@ -246,10 +267,10 @@ public class BindiegoFirebaseDataGen {
             item.addProperty("item_name", pickRandom(ITEM_NAMES));
             item.addProperty("item_brand", "in-game");
             item.addProperty("item_category", "virtual_good");
-            item.addProperty("price", price);
-            item.addProperty("price_in_usd", price);
-            item.addProperty("quantity", quantity);
-            item.addProperty("item_revenue", price * quantity);
+            item.addProperty("price", new BigDecimal(price).toPlainString());
+            item.addProperty("price_in_usd", new BigDecimal(price).toPlainString());
+            item.addProperty("quantity", String.valueOf(quantity));
+            item.addProperty("item_revenue", new BigDecimal(price * quantity).toPlainString());
             items.add(item);
         }
         return items;
@@ -261,12 +282,12 @@ public class BindiegoFirebaseDataGen {
         int totalQuantity = 0;
         for (int i = 0; i < items.size(); i++) {
             JsonObject item = items.get(i).getAsJsonObject();
-            totalRevenue += item.get("item_revenue").getAsDouble();
-            totalQuantity += item.get("quantity").getAsInt();
+            totalRevenue += Double.parseDouble(item.get("item_revenue").getAsString());
+            totalQuantity += Integer.parseInt(item.get("quantity").getAsString());
         }
-        ecommerce.addProperty("total_item_quantity", totalQuantity);
-        ecommerce.addProperty("purchase_revenue", totalRevenue);
-        ecommerce.addProperty("purchase_revenue_in_usd", totalRevenue);
+        ecommerce.addProperty("total_item_quantity", String.valueOf(totalQuantity));
+        ecommerce.addProperty("purchase_revenue", new BigDecimal(totalRevenue).toPlainString());
+        ecommerce.addProperty("purchase_revenue_in_usd", new BigDecimal(totalRevenue).toPlainString());
         ecommerce.addProperty("transaction_id", "T" + generateHexId(10));
         return ecommerce;
     }

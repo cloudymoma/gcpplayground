@@ -35,6 +35,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.LongSerializationPolicy;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 
@@ -77,6 +78,7 @@ class DoSub implements Runnable {
                     final String jsonStr = message.getData().toStringUtf8();
 
                     GsonBuilder gsonBuilder = new GsonBuilder();
+                    
                     gsonBuilder.registerTypeAdapter(Double.class, new JsonSerializer<Double>() {
                         @Override
                         public JsonElement serialize(Double src, Type typeOfSrc, JsonSerializationContext context) {
@@ -87,7 +89,7 @@ class DoSub implements Runnable {
                             }
                         }
                     });
-
+/*
                     gsonBuilder.registerTypeAdapter(Long.class, new JsonSerializer<Long>() {
                         @Override
                         public JsonElement serialize(Long src, Type typeOfSrc, JsonSerializationContext context) {
@@ -101,6 +103,8 @@ class DoSub implements Runnable {
                             return new JsonPrimitive(src);
                         }
                     });
+*/
+                    gsonBuilder.setLongSerializationPolicy(LongSerializationPolicy.STRING);
 
                     Gson gson = gsonBuilder.setPrettyPrinting().create();
                     JsonObject jsonObject = gson.fromJson(
