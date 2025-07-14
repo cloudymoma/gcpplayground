@@ -28,8 +28,14 @@ import com.google.pubsub.v1.PullResponse;
 import com.google.pubsub.v1.ReceivedMessage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
 
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -65,18 +71,37 @@ class DoSub implements Runnable {
                     .setMaxOutstandingRequestBytes(100L * 1024L * 1024L)
                     .build();
 
-            // Provides an executor service for processing messages.
-            /*
-            ExecutorProvider executorProvider =
-                InstantiatingExecutorProvider.newBuilder().setExecutorThreadCount(4).build();
-                */
-
-            //TODO: https://github.com/googleapis/java-pubsub/blob/52263ce63d4cbda649121e465f4bdc78bbfa8e44/samples/snippets/src/main/java/pubsub/SubscribeWithExactlyOnceConsumerWithResponseExample.java
             MessageReceiver receiver = 
                 (PubsubMessage message, AckReplyConsumer consumer) -> {
                     final String jsonStr = message.getData().toStringUtf8();
 
-                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                    GsonBuilder gsonBuilder = new GsonBuilder();
+                    gsonBuilder.registerTypeAdapter(Double.class, new JsonSerializer<Double>() {
+                        @Override
+                        public JsonElement serialize(Double src, Type typeOfSrc, JsonSerializationContext context) {
+                            if (src == src.longValue()) {
+                                return new JsonPrimitive(src.longValue());
+                            } else {
+                                return new JsonPrimitive(new BigDecimal(src));
+                            }
+                        }
+                    });
+
+                    gsonBuilder.registerTypeAdapter(Long.class, new JsonSerializer<Long>() {
+                        @Override
+                        public JsonElement serialize(Long src, Type typeOfSrc, JsonSerializationContext context) {
+                            return new JsonPrimitive(src);
+                        }
+                    });
+
+                    gsonBuilder.registerTypeAdapter(Integer.class, new JsonSerializer<Integer>() {
+                        @Override
+                        public JsonElement serialize(Integer src, Type typeOfSrc, JsonSerializationContext context) {
+                            return new JsonPrimitive(src);
+                        }
+                    });
+
+                    Gson gson = gsonBuilder.setPrettyPrinting().create();
                     JsonObject jsonObject = gson.fromJson(
                         jsonStr, JsonObject.class);
 
@@ -94,7 +119,7 @@ class DoSub implements Runnable {
                                 .getSeconds() + "\n" +
                             "Publish time nanosecond: " + message.getPublishTime()
                                 .getNanos() + "\n" +
-                            "Data payload: " + gson.toJson(JsonParser.parseString(jsonStr)) + "\n" +
+                            "Data payload: " + gson.toJson(jsonObject) + "\n" +
                             "Attribute timestamp: " 
                                 + message.getAttributesOrDefault("timestamp", "CANNOT get timestamp") + "\n" +
                             "Attribute ID: " 

@@ -208,10 +208,12 @@ class DoPub implements Runnable {
 
                         @Override
                         public void onSuccess(String messageId) {
+                            /*
                             if (config.getProperty("google.pubsub.print.msg").toString().equalsIgnoreCase("on")) {
                                 // Once published, returns server-assigned message ids (unique within the topic)
                                 logger.info("Published message ID: " + messageId);
                             }
+                            */
 
                             dingoStats.add(System.currentTimeMillis() - millis);
                         }

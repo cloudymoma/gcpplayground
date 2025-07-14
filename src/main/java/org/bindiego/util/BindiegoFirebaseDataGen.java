@@ -1,8 +1,17 @@
 package org.bindiego.util;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONException;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -29,61 +38,81 @@ public class BindiegoFirebaseDataGen {
     private static final String[] ITEM_NAMES = {"gold_pack_small", "gem_bundle_medium", "starter_kit", "special_offer_epic"};
     private static final String[] SCREEN_NAMES = {"main_menu", "shop", "level_selector", "gameplay_hud", "settings"};
 
+    private final Gson gson;
+
+    public BindiegoFirebaseDataGen() {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(Double.class, new JsonSerializer<Double>() {
+            @Override
+            public JsonElement serialize(Double src, Type typeOfSrc, JsonSerializationContext context) {
+                if (src == src.longValue()) {
+                    return new JsonPrimitive(src.longValue());
+                } else {
+                    return new JsonPrimitive(new BigDecimal(src));
+                }
+            }
+        });
+        this.gson = gsonBuilder.create();
+    }
+
     /**
      * Generates a single, random Firebase event as a JSON formatted string.
      * @return A JSON string representing a single event record.
      */
     public String generateRandomEvent() {
-        JSONObject record = new JSONObject();
-        try {
-            // 1. Generate core event time and name
-            LocalDate eventDate = LocalDate.now().minusDays(random.nextInt(30));
-            long eventTimestamp = generateTimestampMicros(eventDate);
-            String eventName = pickRandom(EVENT_NAMES);
+        JsonObject record = new JsonObject();
+        // 1. Generate core event time and name
+        LocalDate eventDate = LocalDate.now().minusDays(random.nextInt(30));
+        long eventTimestamp = generateTimestampMicros(eventDate);
+        String eventName = pickRandom(EVENT_NAMES);
 
-            record.put("event_date", eventDate.format(DATE_FORMATTER));
-            record.put("event_timestamp", eventTimestamp);
-            record.put("event_ts", JSONObject.NULL); // Often derived during ETL, can be set to null.
-            record.put("event_name", eventName);
+        record.addProperty("event_date", eventDate.format(DATE_FORMATTER));
+        record.addProperty("event_timestamp", eventTimestamp);
+        record.add("event_ts", JsonNull.INSTANCE); // Often derived during ETL, can be set to null.
+        record.addProperty("event_name", eventName);
 
-            // 2. Generate User Identifiers
-            String userPseudoId = generateHexId(32).toUpperCase();
-            String userId = generateHexId(32).toLowerCase();
-            record.put("user_pseudo_id", userPseudoId);
-            record.put("user_id", random.nextBoolean() ? userId : JSONObject.NULL);
-
-            // 3. Generate Event Parameters based on event_name
-            record.put("event_params", generateEventParams(eventName, userPseudoId));
-
-            // 4. Populate other top-level fields
-            record.put("user_properties", generateUserProperties());
-            record.put("device", generateDevice());
-            record.put("geo", generateGeo());
-            record.put("traffic_source", generateTrafficSource());
-            record.put("app_info", generateAppInfo());
-            record.put("platform", pickRandom(PLATFORMS));
-            record.put("stream_id", "1047766415");
-
-            // 5. Handle ecommerce data for 'purchase' events
-            if ("purchase".equals(eventName)) {
-                JSONArray items = generateItems();
-                record.put("items", items);
-                record.put("ecommerce", generateEcommerce(items));
-            } else {
-                record.put("items", new JSONArray());
-                record.put("ecommerce", new JSONObject());
-            }
-
-            // Add other nullable fields with random or fixed values
-            record.put("event_previous_timestamp", eventTimestamp - random.nextInt(5_000_000));
-            record.put("event_value_in_usd", JSONObject.NULL);
-            record.put("event_bundle_sequence_id", random.nextInt(10000));
-            record.put("user_first_touch_timestamp", eventTimestamp - random.nextInt(100_000_000));
-            record.put("privacy_info", new JSONObject().put("analytics_storage", "Yes").put("ads_storage", "Yes"));
-        } catch (JSONException e) {
-            // Ignore exception
+        // 2. Generate User Identifiers
+        String userPseudoId = generateHexId(32).toUpperCase();
+        String userId = generateHexId(32).toLowerCase();
+        record.addProperty("user_pseudo_id", userPseudoId);
+        if (random.nextBoolean()) {
+            record.addProperty("user_id", userId);
+        } else {
+            record.add("user_id", JsonNull.INSTANCE);
         }
-        return record.toString();
+
+        // 3. Generate Event Parameters based on event_name
+        record.add("event_params", generateEventParams(eventName, userPseudoId));
+
+        // 4. Populate other top-level fields
+        record.add("user_properties", generateUserProperties());
+        record.add("device", generateDevice());
+        record.add("geo", generateGeo());
+        record.add("traffic_source", generateTrafficSource());
+        record.add("app_info", generateAppInfo());
+        record.addProperty("platform", pickRandom(PLATFORMS));
+        record.addProperty("stream_id", "1047766415");
+
+        // 5. Handle ecommerce data for 'purchase' events
+        if ("purchase".equals(eventName)) {
+            JsonArray items = generateItems();
+            record.add("items", items);
+            record.add("ecommerce", generateEcommerce(items));
+        } else {
+            record.add("items", new JsonArray());
+            record.add("ecommerce", new JsonObject());
+        }
+
+        // Add other nullable fields with random or fixed values
+        record.addProperty("event_previous_timestamp", eventTimestamp - random.nextInt(5_000_000));
+        record.add("event_value_in_usd", JsonNull.INSTANCE);
+        record.addProperty("event_bundle_sequence_id", random.nextInt(10000));
+        record.addProperty("user_first_touch_timestamp", eventTimestamp - random.nextInt(100_000_000));
+        JsonObject privacyInfo = new JsonObject();
+        privacyInfo.addProperty("analytics_storage", "Yes");
+        privacyInfo.addProperty("ads_storage", "Yes");
+        record.add("privacy_info", privacyInfo);
+        return gson.toJson(record);
     }
     
     // --- Helper methods to generate different parts of the schema ---
@@ -104,171 +133,141 @@ public class BindiegoFirebaseDataGen {
         return sb.toString();
     }
 
-    private JSONArray generateEventParams(String eventName, String userPseudoId) {
-        JSONArray params = new JSONArray();
-        try {
-            long sessionId = Math.abs(userPseudoId.hashCode());
-            int sessionNumber = random.nextInt(100) + 1;
+    private JsonArray generateEventParams(String eventName, String userPseudoId) {
+        JsonArray params = new JsonArray();
+        long sessionId = Math.abs(userPseudoId.hashCode());
+        int sessionNumber = random.nextInt(100) + 1;
 
-            params.put(createParam("ga_session_id", "int_value", sessionId));
-            params.put(createParam("ga_session_number", "int_value", sessionNumber));
-            params.put(createParam("engaged_session_event", "int_value", 1));
+        params.add(createParam("ga_session_id", "int_value", sessionId));
+        params.add(createParam("ga_session_number", "int_value", sessionNumber));
+        params.add(createParam("engaged_session_event", "int_value", 1));
 
-            switch (eventName) {
-                case "level_start":
-                    params.put(createParam("level_name", "string_value", "level_" + (random.nextInt(50) + 1)));
-                    break;
-                case "level_complete":
-                    params.put(createParam("level_name", "string_value", "level_" + (random.nextInt(50) + 1)));
-                    params.put(createParam("score", "int_value", random.nextInt(100000)));
-                    break;
-                case "level_fail":
-                    params.put(createParam("level_name", "string_value", "level_" + (random.nextInt(50) + 1)));
-                    break;
-                case "ad_impression":
-                case "ad_click":
-                    params.put(createParam("ad_format", "string_value", pickRandom(AD_FORMATS)));
-                    params.put(createParam("ad_source", "string_value", pickRandom(AD_SOURCES)));
-                    params.put(createParam("ad_placement", "string_value", pickRandom(new String[]{"end_of_level", "store_boost"})));
-                    break;
-                case "screen_view":
-                    params.put(createParam("firebase_screen_name", "string_value", pickRandom(SCREEN_NAMES)));
-                    params.put(createParam("firebase_screen_class", "string_value", "UnityViewController"));
-                    break;
-                case "purchase":
-                    params.put(createParam("currency", "string_value", "USD"));
-                    params.put(createParam("value", "double_value", Math.round((random.nextDouble() * 100) * 100.0) / 100.0));
-                    params.put(createParam("transaction_id", "string_value", "T" + generateHexId(10)));
-                    break;
-                case "user_engagement":
-                    params.put(createParam("engagement_time_msec", "int_value", random.nextInt(30000) + 1000));
-                    break;
-            }
-        } catch (Exception e) {
-            // Ignore exception
+        switch (eventName) {
+            case "level_start":
+                params.add(createParam("level_name", "string_value", "level_" + (random.nextInt(50) + 1)));
+                break;
+            case "level_complete":
+                params.add(createParam("level_name", "string_value", "level_" + (random.nextInt(50) + 1)));
+                params.add(createParam("score", "int_value", random.nextInt(100000)));
+                break;
+            case "level_fail":
+                params.add(createParam("level_name", "string_value", "level_" + (random.nextInt(50) + 1)));
+                break;
+            case "ad_impression":
+            case "ad_click":
+                params.add(createParam("ad_format", "string_value", pickRandom(AD_FORMATS)));
+                params.add(createParam("ad_source", "string_value", pickRandom(AD_SOURCES)));
+                params.add(createParam("ad_placement", "string_value", pickRandom(new String[]{"end_of_level", "store_boost"})));
+                break;
+            case "screen_view":
+                params.add(createParam("firebase_screen_name", "string_value", pickRandom(SCREEN_NAMES)));
+                params.add(createParam("firebase_screen_class", "string_value", "UnityViewController"));
+                break;
+            case "purchase":
+                params.add(createParam("currency", "string_value", "USD"));
+                params.add(createParam("value", "double_value", Math.round((random.nextDouble() * 100) * 100.0) / 100.0));
+                params.add(createParam("transaction_id", "string_value", "T" + generateHexId(10)));
+                break;
+            case "user_engagement":
+                params.add(createParam("engagement_time_msec", "int_value", random.nextInt(30000) + 1000));
+                break;
         }
         return params;
     }
 
-    private JSONObject createParam(String key, String valueType, Object value) {
-        JSONObject param = new JSONObject();
-        try {
-            param.put("key", key);
-            param.put("value", new JSONObject().put(valueType, value));
-        } catch (JSONException e) {
-            // Ignore exception
+    private JsonObject createParam(String key, String valueType, Object value) {
+        JsonObject param = new JsonObject();
+        JsonObject valueObject = new JsonObject();
+        if (value instanceof String) {
+            valueObject.addProperty(valueType, (String) value);
+        } else if (value instanceof Number) {
+            valueObject.addProperty(valueType, (Number) value);
         }
+        param.addProperty("key", key);
+        param.add("value", valueObject);
         return param;
     }
     
-    private JSONArray generateUserProperties() {
-        JSONArray properties = new JSONArray();
-        try {
-            properties.put(createParam("player_level", "int_value", random.nextInt(100) + 1));
-            properties.put(createParam("coins_balance", "int_value", random.nextInt(50000)));
-            properties.put(createParam("is_spender", "string_value", String.valueOf(random.nextBoolean())));
-        } catch (Exception e) {
-            // Ignore exception
-        }
+    private JsonArray generateUserProperties() {
+        JsonArray properties = new JsonArray();
+        properties.add(createParam("player_level", "int_value", random.nextInt(100) + 1));
+        properties.add(createParam("coins_balance", "int_value", random.nextInt(50000)));
+        properties.add(createParam("is_spender", "string_value", String.valueOf(random.nextBoolean())));
         return properties;
     }
 
-    private JSONObject generateDevice() {
-        JSONObject device = new JSONObject();
-        try {
-            boolean isIOS = "IOS".equals(pickRandom(PLATFORMS));
-            device.put("category", pickRandom(new String[]{"mobile", "tablet"}));
-            device.put("mobile_brand_name", isIOS ? "Apple" : pickRandom(new String[]{"Samsung", "Google", "OnePlus"}));
-            device.put("operating_system", isIOS ? "iOS" : "Android");
-            device.put("operating_system_version", isIOS ? "16.5.1" : "13.0");
-            device.put("language", pickRandom(new String[]{"en-us", "en-gb", "de-de", "ja-jp"}));
-            device.put("is_limited_ad_tracking", String.valueOf(random.nextBoolean()));
-        } catch (JSONException e) {
-            // Ignore exception
-        }
+    private JsonObject generateDevice() {
+        JsonObject device = new JsonObject();
+        boolean isIOS = "IOS".equals(pickRandom(PLATFORMS));
+        device.addProperty("category", pickRandom(new String[]{"mobile", "tablet"}));
+        device.addProperty("mobile_brand_name", isIOS ? "Apple" : pickRandom(new String[]{"Samsung", "Google", "OnePlus"}));
+        device.addProperty("operating_system", isIOS ? "iOS" : "Android");
+        device.addProperty("operating_system_version", isIOS ? "16.5.1" : "13.0");
+        device.addProperty("language", pickRandom(new String[]{"en-us", "en-gb", "de-de", "ja-jp"}));
+        device.addProperty("is_limited_ad_tracking", String.valueOf(random.nextBoolean()));
         return device;
     }
 
-    private JSONObject generateGeo() {
-        JSONObject geo = new JSONObject();
-        try {
-            int index = random.nextInt(COUNTRIES.length);
-            geo.put("country", COUNTRIES[index]);
-            geo.put("city", CITIES[index]);
-            geo.put("continent", "Americas"); // Simplified for example
-            geo.put("region", JSONObject.NULL);
-        } catch (JSONException e) {
-            // Ignore exception
-        }
+    private JsonObject generateGeo() {
+        JsonObject geo = new JsonObject();
+        int index = random.nextInt(COUNTRIES.length);
+        geo.addProperty("country", COUNTRIES[index]);
+        geo.addProperty("city", CITIES[index]);
+        geo.addProperty("continent", "Americas"); // Simplified for example
+        geo.add("region", JsonNull.INSTANCE);
         return geo;
     }
 
-    private JSONObject generateTrafficSource() {
-        JSONObject ts = new JSONObject();
-        try {
-            ts.put("name", "(direct)");
-            ts.put("medium", "(none)");
-            ts.put("source", "(direct)");
-        } catch (JSONException e) {
-            // Ignore exception
-        }
+    private JsonObject generateTrafficSource() {
+        JsonObject ts = new JsonObject();
+        ts.addProperty("name", "(direct)");
+        ts.addProperty("medium", "(none)");
+        ts.addProperty("source", "(direct)");
         return ts;
     }
     
-    private JSONObject generateAppInfo() {
-        JSONObject app = new JSONObject();
-        try {
-            app.put("id", "com.redhotlabs.bingo");
-            app.put("version", "2.1.0");
-            app.put("install_source", pickRandom(new String[]{"iTunes", "com.android.vending"}));
-            app.put("firebase_app_id", "1:676333365279:ios:4916161d30139c63");
-        } catch (JSONException e) {
-            // Ignore exception
-        }
+    private JsonObject generateAppInfo() {
+        JsonObject app = new JsonObject();
+        app.addProperty("id", "com.redhotlabs.bingo");
+        app.addProperty("version", "2.1.0");
+        app.addProperty("install_source", pickRandom(new String[]{"iTunes", "com.android.vending"}));
+        app.addProperty("firebase_app_id", "1:676333365279:ios:4916161d30139c63");
         return app;
     }
 
-    private JSONArray generateItems() {
-        JSONArray items = new JSONArray();
-        try {
-            int itemCount = random.nextInt(3) + 1; // 1 to 3 items per purchase
-            for (int i = 0; i < itemCount; i++) {
-                JSONObject item = new JSONObject();
-                double price = Math.round((random.nextDouble() * 20 + 0.99) * 100.0) / 100.0;
-                int quantity = random.nextInt(2) + 1;
-                item.put("item_id", generateHexId(8));
-                item.put("item_name", pickRandom(ITEM_NAMES));
-                item.put("item_brand", "in-game");
-                item.put("item_category", "virtual_good");
-                item.put("price", price);
-                item.put("price_in_usd", price);
-                item.put("quantity", quantity);
-                item.put("item_revenue", price * quantity);
-                items.put(item);
-            }
-        } catch (JSONException e) {
-            // Ignore exception
+    private JsonArray generateItems() {
+        JsonArray items = new JsonArray();
+        int itemCount = random.nextInt(3) + 1; // 1 to 3 items per purchase
+        for (int i = 0; i < itemCount; i++) {
+            JsonObject item = new JsonObject();
+            double price = Math.round((random.nextDouble() * 20 + 0.99) * 100.0) / 100.0;
+            int quantity = random.nextInt(2) + 1;
+            item.addProperty("item_id", generateHexId(8));
+            item.addProperty("item_name", pickRandom(ITEM_NAMES));
+            item.addProperty("item_brand", "in-game");
+            item.addProperty("item_category", "virtual_good");
+            item.addProperty("price", price);
+            item.addProperty("price_in_usd", price);
+            item.addProperty("quantity", quantity);
+            item.addProperty("item_revenue", price * quantity);
+            items.add(item);
         }
         return items;
     }
     
-    private JSONObject generateEcommerce(JSONArray items) {
-        JSONObject ecommerce = new JSONObject();
-        try {
-            double totalRevenue = 0;
-            int totalQuantity = 0;
-            for (int i = 0; i < items.length(); i++) {
-                JSONObject item = items.getJSONObject(i);
-                totalRevenue += item.getDouble("item_revenue");
-                totalQuantity += item.getInt("quantity");
-            }
-            ecommerce.put("total_item_quantity", totalQuantity);
-            ecommerce.put("purchase_revenue", totalRevenue);
-            ecommerce.put("purchase_revenue_in_usd", totalRevenue);
-            ecommerce.put("transaction_id", "T" + generateHexId(10));
-        } catch (JSONException e) {
-            // Ignore exception
+    private JsonObject generateEcommerce(JsonArray items) {
+        JsonObject ecommerce = new JsonObject();
+        double totalRevenue = 0;
+        int totalQuantity = 0;
+        for (int i = 0; i < items.size(); i++) {
+            JsonObject item = items.get(i).getAsJsonObject();
+            totalRevenue += item.get("item_revenue").getAsDouble();
+            totalQuantity += item.get("quantity").getAsInt();
         }
+        ecommerce.addProperty("total_item_quantity", totalQuantity);
+        ecommerce.addProperty("purchase_revenue", totalRevenue);
+        ecommerce.addProperty("purchase_revenue_in_usd", totalRevenue);
+        ecommerce.addProperty("transaction_id", "T" + generateHexId(10));
         return ecommerce;
     }
 
