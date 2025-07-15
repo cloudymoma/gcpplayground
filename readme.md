@@ -70,12 +70,11 @@ google.pubsub.skip.init = false # false means create the topic and subscritpion 
 google.pubsub.pub = on # publish the messages to the topic
 google.pubsub.sub = on # subscribe the messages and print on the screen for debugging purposes 
 google.pubsub.pub.threads = 4
-google.pubsub.pub.threads.msgnum = 20
 google.pubsub.topic = firebase-rt-topic
 google.pubsub.sub.threads = 8
-google.pubsub.sub.threads.pulls = 10
 google.pubsub.subscription = firebase-rt-sub
-firebase.sample.data = /path/to/sample_data.json
+google.pubsub.print.msg = on # print sampling message from subscriber
+google.pubsub.perf = on # print stats info for PubSub
 ```
 
 Tips:
